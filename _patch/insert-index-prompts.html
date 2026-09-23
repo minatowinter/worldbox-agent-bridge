@@ -1,0 +1,16 @@
+        <div class="section-title">🪄 领袖人设</div>
+        <p class="tip" id="r_promptStats">正在统计…</p>
+        <div class="row">
+          <div class="field" style="flex:0 0 auto">
+            <button class="btn tiny primary" id="r_regenForce">🪄 重新生成全部人设</button>
+          </div>
+          <div class="field" style="flex:0 0 auto">
+            <button class="btn tiny ghost" id="r_regenFill">只补空缺与过期</button>
+          </div>
+        </div>
+        <p class="tip">
+          <b>你自己写的人设永远不会被覆盖</b>：自动生成的内容单独放在 <code>systemPromptAuto</code> 里，
+          两者拼接后才是角色真正拿到的人设。角色卡上能分别看到它们。
+          <br>「重新生成全部」会按当前世界重算自动那段（手写的不动）；「只补空缺与过期」只处理还没有人设、或人设对应的存档已经变了的角色。
+          <br>自动人设会记下生成时的存档——换了存档后，旧人设里的国名与国王可能已经不存在，这时角色卡上会标 ⚠️。
+        </p>
