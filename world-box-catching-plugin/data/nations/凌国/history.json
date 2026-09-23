@@ -1,0 +1,10 @@
+{
+ "schema_version": "1.0",
+ "kind": "nation.history",
+ "文档类型": "本国逐年历史",
+ "kingdom_id": 39,
+ "王国名称": "凌国",
+ "来源表": "KingdomYearly1",
+ "说明": "每个游戏年份一行；游戏当年没统计到的字段会被省略",
+ "series": []
+}

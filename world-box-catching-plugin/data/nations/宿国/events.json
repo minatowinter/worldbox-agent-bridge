@@ -1,0 +1,33 @@
+{
+ "schema_version": "1.0",
+ "kind": "nation.events",
+ "文档类型": "本国大事记",
+ "kingdom_id": 38,
+ "王国名称": "宿国",
+ "events": [
+  {
+   "年份": 13554,
+   "事件": "kingdom_new",
+   "事件码": "kingdom_new",
+   "主角": "宿国",
+   "对象": null,
+   "补充": null,
+   "坐标": [
+    220,
+    87
+   ]
+  },
+  {
+   "年份": 13554,
+   "事件": "kingdom_royal_clan_new",
+   "事件码": "kingdom_royal_clan_new",
+   "主角": "宿国",
+   "对象": "Katovan",
+   "补充": "王靓",
+   "坐标": [
+    220,
+    87
+   ]
+  }
+ ]
+}

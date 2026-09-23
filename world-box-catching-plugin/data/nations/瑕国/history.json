@@ -1,0 +1,37 @@
+{
+ "schema_version": "1.0",
+ "kind": "nation.history",
+ "文档类型": "本国逐年历史",
+ "kingdom_id": 36,
+ "王国名称": "瑕国",
+ "来源表": "KingdomYearly1",
+ "说明": "每个游戏年份一行；游戏当年没统计到的字段会被省略",
+ "series": [
+  {
+   "timestamp": 226,
+   "population": 72,
+   "adults": 46,
+   "children": 26,
+   "army": 0,
+   "boats": 1,
+   "sick": 0,
+   "hungry": 6,
+   "starving": 0,
+   "happy": 71,
+   "kills": 0,
+   "deaths": 0,
+   "births": 0,
+   "territory": 30,
+   "buildings": 18,
+   "homeless": 3,
+   "housed": 69,
+   "food": 0,
+   "families": 27,
+   "males": 32,
+   "females": 40,
+   "cities": 1,
+   "renown": 144,
+   "money": 1619
+  }
+ ]
+}

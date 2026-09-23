@@ -1,0 +1,33 @@
+{
+ "schema_version": "1.0",
+ "kind": "nation.events",
+ "文档类型": "本国大事记",
+ "kingdom_id": 40,
+ "王国名称": "晋国",
+ "events": [
+  {
+   "年份": 13560,
+   "事件": "kingdom_new",
+   "事件码": "kingdom_new",
+   "主角": "晋国",
+   "对象": null,
+   "补充": null,
+   "坐标": [
+    51,
+    29
+   ]
+  },
+  {
+   "年份": 13560,
+   "事件": "kingdom_royal_clan_new",
+   "事件码": "kingdom_royal_clan_new",
+   "主角": "晋国",
+   "对象": "Godokoon",
+   "补充": "万泊",
+   "坐标": [
+    51,
+    29
+   ]
+  }
+ ]
+}

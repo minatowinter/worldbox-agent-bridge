@@ -1,0 +1,37 @@
+{
+ "schema_version": "1.0",
+ "kind": "nation.history",
+ "文档类型": "本国逐年历史",
+ "kingdom_id": 38,
+ "王国名称": "宿国",
+ "来源表": "KingdomYearly1",
+ "说明": "每个游戏年份一行；游戏当年没统计到的字段会被省略",
+ "series": [
+  {
+   "timestamp": 226,
+   "population": 138,
+   "adults": 92,
+   "children": 46,
+   "army": 27,
+   "boats": 3,
+   "sick": 0,
+   "hungry": 12,
+   "starving": 0,
+   "happy": 138,
+   "kills": 0,
+   "deaths": 0,
+   "births": 0,
+   "territory": 64,
+   "buildings": 44,
+   "homeless": 7,
+   "housed": 131,
+   "food": 597,
+   "families": 35,
+   "males": 69,
+   "females": 69,
+   "cities": 1,
+   "renown": 276,
+   "money": 3104
+  }
+ ]
+}

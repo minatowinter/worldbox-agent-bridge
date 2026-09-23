@@ -1,0 +1,1344 @@
+{
+ "schema_version": "1.0",
+ "kind": "world.overview",
+ "文档类型": "世界概览",
+ "生成时间": 1789904727.1394422,
+ "source": {
+  "path": "C:\\Users\\24771\\AppData\\LocalLow\\mkarpenko\\WorldBox\\saves\\save3\\map.wbox",
+  "kind": "save",
+  "save_version": 17
+ },
+ "存档距今秒数": 0.4,
+ "world": {
+  "名称": "Skulls of Misery",
+  "描述": "",
+  "可用坐标范围": {
+   "x": [
+    1,
+    254
+   ],
+   "y": [
+    1,
+    254
+   ],
+   "说明": "实测自地图上的城市、角色与建筑；给创世者指落点时用这个范围"
+  },
+  "存档引擎尺寸字段": "4x4",
+  "_尺寸提示": "『存档引擎尺寸字段』是游戏内部分块数，不是地图大小，不要拿它来判断地图范围；请用『可用坐标范围』",
+  "年份": 226,
+  "世界时间": 13573.816735971719,
+  "纪元": "age_hope",
+  "纪元进度": 0.07529992,
+  "纪元已暂停": true,
+  "玩家名": "The Creator",
+  "玩家心情": "serene",
+  "世界法则": [
+   "{'name': 'world_law_diplomacy', 'boolVal': False}",
+   "{'name': 'world_law_peaceful_monsters', 'boolVal': False}",
+   "{'name': 'world_law_hunger'}",
+   "{'name': 'world_law_vegetation_random_seeds'}",
+   "{'name': 'world_law_vegetation_seeds'}",
+   "{'name': 'world_law_grow_minerals'}",
+   "{'name': 'world_law_grow_grass'}",
+   "{'name': 'world_law_biome_overgrowth'}",
+   "{'name': 'world_law_kingdom_expansion'}",
+   "{'name': 'world_law_old_age'}",
+   "{'name': 'world_law_animals_spawn'}",
+   "{'name': 'world_law_animals_babies'}",
+   "{'name': 'world_law_rebellions', 'boolVal': False}",
+   "{'name': 'world_law_border_stealing'}",
+   "{'name': 'world_law_erosion', 'boolVal': False}",
+   "{'name': 'world_law_forever_lava', 'boolVal': False}",
+   "{'name': 'world_law_disasters_nature', 'boolVal': False}",
+   "{'name': 'world_law_disasters_other', 'boolVal': False}",
+   "{'name': 'world_law_angry_civilians', 'boolVal': False}",
+   "{'name': 'world_law_civ_babies'}",
+   "{'name': 'world_law_forever_tumor_creep', 'boolVal': False}",
+   "{'name': 'world_law_civ_army'}",
+   "{'name': 'world_law_civ_limit_population_100', 'boolVal': False}",
+   "{'name': 'age_hope'}",
+   "{'name': 'age_sun', 'boolVal': False}",
+   "{'name': 'age_dark', 'boolVal': False}",
+   "{'name': 'age_tears', 'boolVal': False}",
+   "{'name': 'age_moon', 'boolVal': False}",
+   "{'name': 'age_chaos', 'boolVal': False}",
+   "{'name': 'age_wonders', 'boolVal': False}",
+   "{'name': 'age_ice', 'boolVal': False}",
+   "{'name': 'age_ash', 'boolVal': False}",
+   "{'name': 'age_despair', 'boolVal': False}",
+   "{'name': 'world_law_spread_trees'}",
+   "{'name': 'world_law_spread_fungi'}",
+   "{'name': 'world_law_spread_plants'}",
+   "{'name': 'world_law_spread_fast_trees', 'boolVal': False}",
+   "{'name': 'world_law_spread_fast_fungi', 'boolVal': False}",
+   "{'name': 'world_law_spread_fast_plants', 'boolVal': False}",
+   "{'name': 'world_law_spread_density_high', 'boolVal': False}",
+   "{'name': 'world_law_exploding_mushrooms', 'boolVal': False}",
+   "{'name': 'world_law_entanglewood'}",
+   "{'name': 'world_law_bark_bites_back', 'boolVal': False}",
+   "{'name': 'world_law_plants_tickles', 'boolVal': False}",
+   "{'name': 'world_law_root_pranks', 'boolVal': False}",
+   "{'name': 'world_law_nectar_nap', 'boolVal': False}",
+   "{'name': 'world_law_gene_spaghetti', 'boolVal': False}",
+   "{'name': 'world_law_mutant_box', 'boolVal': False}",
+   "{'name': 'world_law_glitched_noosphere', 'boolVal': False}",
+   "{'name': 'world_law_drop_of_thoughts', 'boolVal': False}",
+   "{'name': 'world_law_rites'}",
+   "{'name': 'world_law_roots_without_borders', 'boolVal': False}",
+   "{'name': 'world_law_terramorphing'}",
+   "{'name': 'world_law_forever_cold', 'boolVal': False}",
+   "{'name': 'world_law_clouds'}",
+   "{'name': 'world_law_evolution_events'}",
+   "{'name': 'world_law_rat_plague', 'boolVal': False}",
+   "{'name': 'world_law_civ_migrants'}",
+   "{'name': 'world_law_gaias_covenant', 'boolVal': False}",
+   "{'name': 'world_law_cursed_world', 'boolVal': False}",
+   "{'name': 'age_unknown'}",
+   "{'name': 'The Big Sad'}",
+   "{'name': 'Roaring 20s'}",
+   "{'name': 'Gold Rush'}",
+   "{'name': 'Economic bubble'}",
+   "{'name': 'Bank Failure'}"
+  ],
+  "是否使用模组": false,
+  "启用的模组": []
+ },
+ "totals": {
+  "现存王国": 9,
+  "累计建立王国_游戏计数器": 10,
+  "城市总数": 19,
+  "存档角色条目总数": 3969,
+  "各国常住人口之和": 3932,
+  "进行中的战争": 8,
+  "同盟数": 0,
+  "文化数": 19,
+  "语言数": 18,
+  "宗教数": 6,
+  "宗族数": 9,
+  "家族数": 1156,
+  "军队数": 17,
+  "累计死亡": 8705,
+  "死因分布": {
+   "age": 2495,
+   "饿死": 238,
+   "被吞噬": 99,
+   "烧死": 124,
+   "战死": 635,
+   "溺死": 1,
+   "炸死": 5,
+   "其他": 5108
+  },
+  "_口径提示": "『各国常住人口之和』不含船只，可能略小于『存档角色条目总数』（后者含船只与不属于任何国家的野怪）。『累计建立王国_游戏计数器』来自游戏统计，在该世界里可能出现小于现存王国数的反常值，仅供参考。"
+ },
+ "国力排行": [
+  {
+   "id": 6,
+   "名称": "大仁",
+   "是否存续": true,
+   "种族": "human",
+   "国王": "叶蒲月",
+   "国王id": 8282,
+   "国王特质": [
+    {
+     "id": "weightless",
+     "label": "身轻如燕"
+    },
+    {
+     "id": "strong",
+     "label": "强壮"
+    },
+    {
+     "id": "wise",
+     "label": "睿智"
+    },
+    {
+     "id": "golden_tooth",
+     "label": "金牙"
+    }
+   ],
+   "格言": "Hold my gold",
+   "首都": "北平",
+   "首都坐标": [
+    4,
+    23
+   ],
+   "人口": 2084,
+   "城市数": 10,
+   "领土地块": 526,
+   "建筑数": 4742,
+   "军队兵力": 495,
+   "声望": 3973,
+   "累计击杀": 449,
+   "累计死亡": 1245,
+   "建国年": 22,
+   "迁入人数": 303,
+   "迁出人数": 2075,
+   "国家文化": "Ydadua",
+   "国家特质": [
+    {
+     "id": "econ_crisis",
+     "label": "econ_crisis"
+    }
+   ]
+  },
+  {
+   "id": 35,
+   "名称": "南方自由主义联邦",
+   "是否存续": true,
+   "种族": "human",
+   "国王": "仲鹫吉",
+   "国王id": 10055,
+   "国王特质": [
+    {
+     "id": "eagle_eyed",
+     "label": "鹰眼"
+    },
+    {
+     "id": "ugly",
+     "label": "丑陋"
+    }
+   ],
+   "格言": "自由至上，金钱为先",
+   "首都": "杭州",
+   "首都坐标": [
+    20,
+    19
+   ],
+   "人口": 1068,
+   "城市数": 2,
+   "领土地块": 181,
+   "建筑数": 1353,
+   "军队兵力": 163,
+   "声望": 2045,
+   "累计击杀": 26,
+   "累计死亡": 13,
+   "建国年": 12917,
+   "迁入人数": 969,
+   "迁出人数": 11,
+   "国家文化": "Giphupab",
+   "国家特质": [
+    {
+     "id": "tax_rate_tribute_low",
+     "label": "低额贡赋"
+    },
+    {
+     "id": "tax_rate_local_high",
+     "label": "地方高税"
+    },
+    {
+     "id": "econ_crisis",
+     "label": "econ_crisis"
+    }
+   ]
+  },
+  {
+   "id": 39,
+   "名称": "凌国",
+   "是否存续": true,
+   "种族": "dwarf",
+   "国王": "谭秉仁",
+   "国王id": 8711,
+   "国王特质": [
+    {
+     "id": "miner",
+     "label": "矿工"
+    },
+    {
+     "id": "wise",
+     "label": "睿智"
+    }
+   ],
+   "格言": "",
+   "首都": "南广",
+   "首都坐标": [
+    3,
+    8
+   ],
+   "人口": 188,
+   "城市数": 1,
+   "领土地块": 42,
+   "建筑数": 253,
+   "军队兵力": 20,
+   "声望": 386,
+   "累计击杀": 2,
+   "累计死亡": 5,
+   "建国年": 13558,
+   "迁入人数": 193,
+   "迁出人数": 0,
+   "国家文化": "Ydadua",
+   "国家特质": []
+  },
+  {
+   "id": 38,
+   "名称": "宿国",
+   "是否存续": true,
+   "种族": "human",
+   "国王": "王靓",
+   "国王id": 8714,
+   "国王特质": [
+    {
+     "id": "bloodlust",
+     "label": "嗜血"
+    },
+    {
+     "id": "wise",
+     "label": "睿智"
+    }
+   ],
+   "格言": "",
+   "首都": "贵州",
+   "首都坐标": [
+    28,
+    13
+   ],
+   "人口": 136,
+   "城市数": 1,
+   "领土地块": 64,
+   "建筑数": 515,
+   "军队兵力": 27,
+   "声望": 276,
+   "累计击杀": 3,
+   "累计死亡": 2,
+   "建国年": 13554,
+   "迁入人数": 138,
+   "迁出人数": 0,
+   "国家文化": "Waphurab",
+   "国家特质": []
+  },
+  {
+   "id": 37,
+   "名称": "孤竹国",
+   "是否存续": true,
+   "种族": "human",
+   "国王": "霍贞吉",
+   "国王id": 9409,
+   "国王特质": [
+    {
+     "id": "strong",
+     "label": "强壮"
+    },
+    {
+     "id": "deceitful",
+     "label": "狡诈"
+    }
+   ],
+   "格言": "",
+   "首都": "皖州",
+   "首都坐标": [
+    23,
+    28
+   ],
+   "人口": 90,
+   "城市数": 1,
+   "领土地块": 44,
+   "建筑数": 309,
+   "军队兵力": 3,
+   "声望": 256,
+   "累计击杀": 19,
+   "累计死亡": 38,
+   "建国年": 13549,
+   "迁入人数": 128,
+   "迁出人数": 0,
+   "国家文化": "Ydadua",
+   "国家特质": [
+    {
+     "id": "econ_crisis",
+     "label": "econ_crisis"
+    }
+   ]
+  },
+  {
+   "id": 34,
+   "名称": "杉国",
+   "是否存续": true,
+   "种族": "elf",
+   "国王": "皇甫嘉树",
+   "国王id": 9012,
+   "国王特质": [
+    {
+     "id": "weightless",
+     "label": "身轻如燕"
+    },
+    {
+     "id": "moonchild",
+     "label": "月之子"
+    },
+    {
+     "id": "attractive",
+     "label": "俊美"
+    },
+    {
+     "id": "peaceful",
+     "label": "爱好和平"
+    },
+    {
+     "id": "wise",
+     "label": "睿智"
+    },
+    {
+     "id": "golden_tooth",
+     "label": "金牙"
+    }
+   ],
+   "格言": "岁月悠悠，唯记真名  ",
+   "首都": "福州",
+   "首都坐标": [
+    24,
+    2
+   ],
+   "人口": 64,
+   "城市数": 1,
+   "领土地块": 39,
+   "建筑数": 203,
+   "军队兵力": 9,
+   "声望": 248,
+   "累计击杀": 60,
+   "累计死亡": 20,
+   "建国年": 12619,
+   "迁入人数": 102,
+   "迁出人数": 82,
+   "国家文化": "Waruian",
+   "国家特质": [
+    {
+     "id": "tax_rate_tribute_low",
+     "label": "低额贡赋"
+    },
+    {
+     "id": "tax_rate_local_low",
+     "label": "地方低税"
+    },
+    {
+     "id": "econ_crisis",
+     "label": "econ_crisis"
+    }
+   ]
+  },
+  {
+   "id": 40,
+   "名称": "晋国",
+   "是否存续": true,
+   "种族": "human",
+   "国王": "万泊",
+   "国王id": 8923,
+   "国王特质": [
+    {
+     "id": "peaceful",
+     "label": "爱好和平"
+    },
+    {
+     "id": "wise",
+     "label": "睿智"
+    },
+    {
+     "id": "golden_tooth",
+     "label": "金牙"
+    }
+   ],
+   "格言": "",
+   "首都": "琼州",
+   "首都坐标": [
+    5,
+    3
+   ],
+   "人口": 119,
+   "城市数": 1,
+   "领土地块": 53,
+   "建筑数": 435,
+   "军队兵力": 26,
+   "声望": 246,
+   "累计击杀": 5,
+   "累计死亡": 4,
+   "建国年": 13560,
+   "迁入人数": 123,
+   "迁出人数": 0,
+   "国家文化": "Ydadua",
+   "国家特质": []
+  },
+  {
+   "id": 33,
+   "名称": "临朐国",
+   "是否存续": true,
+   "种族": "human",
+   "国王": "涂威陟",
+   "国王id": 9058,
+   "国王特质": [
+    {
+     "id": "savage",
+     "label": "野蛮"
+    },
+    {
+     "id": "peaceful",
+     "label": "爱好和平"
+    },
+    {
+     "id": "ugly",
+     "label": "丑陋"
+    },
+    {
+     "id": "miner",
+     "label": "矿工"
+    },
+    {
+     "id": "pyromaniac",
+     "label": "纵火狂"
+    },
+    {
+     "id": "wise",
+     "label": "睿智"
+    },
+    {
+     "id": "golden_tooth",
+     "label": "金牙"
+    }
+   ],
+   "格言": "往昔胜败何人究,沉戟黄沙度春秋",
+   "首都": "靛州",
+   "首都坐标": [
+    15,
+    4
+   ],
+   "人口": 109,
+   "城市数": 1,
+   "领土地块": 34,
+   "建筑数": 221,
+   "军队兵力": 22,
+   "声望": 235,
+   "累计击杀": 19,
+   "累计死亡": 9,
+   "建国年": 12544,
+   "迁入人数": 78,
+   "迁出人数": 15,
+   "国家文化": "Steterab",
+   "国家特质": []
+  },
+  {
+   "id": 36,
+   "名称": "瑕国",
+   "是否存续": true,
+   "种族": "human",
+   "国王": "管答",
+   "国王id": 9195,
+   "国王特质": [
+    {
+     "id": "strong",
+     "label": "强壮"
+    },
+    {
+     "id": "stupid",
+     "label": "愚钝"
+    },
+    {
+     "id": "paranoid",
+     "label": "多疑"
+    }
+   ],
+   "格言": "",
+   "首都": "南平",
+   "首都坐标": [
+    29,
+    29
+   ],
+   "人口": 74,
+   "城市数": 1,
+   "领土地块": 30,
+   "建筑数": 298,
+   "军队兵力": 0,
+   "声望": 147,
+   "累计击杀": 1,
+   "累计死亡": 0,
+   "建国年": 13548,
+   "迁入人数": 73,
+   "迁出人数": 0,
+   "国家文化": "Shopedab",
+   "国家特质": [
+    {
+     "id": "econ_crisis",
+     "label": "econ_crisis"
+    }
+   ]
+  }
+ ],
+ "进行中的战争": [
+  {
+   "id": 32,
+   "战争名称": "壬辰革命",
+   "进攻方": [
+    {
+     "id": 6,
+     "名称": "大仁"
+    }
+   ],
+   "防守方": [],
+   "总死亡": 232,
+   "爆发年": 12437,
+   "声望收益": 261
+  },
+  {
+   "id": 31,
+   "战争名称": "辛卯革命",
+   "进攻方": [
+    {
+     "id": 6,
+     "名称": "大仁"
+    }
+   ],
+   "防守方": [],
+   "总死亡": 116,
+   "爆发年": 12394,
+   "声望收益": 146
+  },
+  {
+   "id": 35,
+   "战争名称": "庚戌革命",
+   "进攻方": [
+    {
+     "id": 6,
+     "名称": "大仁"
+    }
+   ],
+   "防守方": [
+    {
+     "id": 37,
+     "名称": "孤竹国"
+    }
+   ],
+   "总死亡": 56,
+   "爆发年": 13549,
+   "声望收益": 67
+  },
+  {
+   "id": 33,
+   "战争名称": "庚子革命",
+   "进攻方": [
+    {
+     "id": 6,
+     "名称": "大仁"
+    }
+   ],
+   "防守方": [],
+   "总死亡": 26,
+   "爆发年": 12917,
+   "声望收益": 72
+  },
+  {
+   "id": 38,
+   "战争名称": "辛亥革命",
+   "进攻方": [
+    {
+     "id": 6,
+     "名称": "大仁"
+    }
+   ],
+   "防守方": [
+    {
+     "id": 40,
+     "名称": "晋国"
+    }
+   ],
+   "总死亡": 9,
+   "爆发年": 13560,
+   "声望收益": 19
+  },
+  {
+   "id": 36,
+   "战争名称": "庚戌革命",
+   "进攻方": [
+    {
+     "id": 6,
+     "名称": "大仁"
+    }
+   ],
+   "防守方": [
+    {
+     "id": 38,
+     "名称": "宿国"
+    }
+   ],
+   "总死亡": 5,
+   "爆发年": 13554,
+   "声望收益": 16
+  },
+  {
+   "id": 37,
+   "战争名称": "庚戌革命",
+   "进攻方": [
+    {
+     "id": 6,
+     "名称": "大仁"
+    }
+   ],
+   "防守方": [
+    {
+     "id": 39,
+     "名称": "凌国"
+    }
+   ],
+   "总死亡": 5,
+   "爆发年": 13558,
+   "声望收益": 15
+  },
+  {
+   "id": 34,
+   "战争名称": "庚戌革命",
+   "进攻方": [
+    {
+     "id": 6,
+     "名称": "大仁"
+    }
+   ],
+   "防守方": [
+    {
+     "id": 36,
+     "名称": "瑕国"
+    }
+   ],
+   "总死亡": 1,
+   "爆发年": 13548,
+   "声望收益": 12
+  }
+ ],
+ "世界逐年统计": [
+  {
+   "timestamp": 210,
+   "kingdoms": 3,
+   "cities": 20,
+   "population_civ": 3181,
+   "population_beasts": 34,
+   "wars": 1,
+   "wars_started": 2,
+   "peaces_made": 1,
+   "kingdoms_created": 3,
+   "kingdoms_destroyed": 1,
+   "cities_conquered": 1,
+   "cities_rebelled": 2,
+   "deaths_total": 7879,
+   "houses": 830
+  },
+  {
+   "timestamp": 211,
+   "kingdoms": 4,
+   "cities": 19,
+   "population_civ": 3146,
+   "population_beasts": 36,
+   "kingdoms_created": 4,
+   "deaths_total": 7994,
+   "houses": 839
+  },
+  {
+   "timestamp": 212,
+   "kingdoms": 3,
+   "population_civ": 3183,
+   "population_beasts": 34,
+   "wars": 0,
+   "peaces_made": 2,
+   "kingdoms_destroyed": 2,
+   "cities_conquered": 2,
+   "deaths_total": 8090,
+   "houses": 851
+  },
+  {
+   "timestamp": 213,
+   "population_civ": 3232,
+   "population_beasts": 32,
+   "deaths_total": 8126,
+   "houses": 858
+  },
+  {
+   "timestamp": 214,
+   "population_civ": 3243,
+   "population_beasts": 34,
+   "deaths_total": 8204,
+   "houses": 870
+  },
+  {
+   "timestamp": 215,
+   "population_civ": 3274,
+   "population_beasts": 40,
+   "deaths_total": 8257,
+   "houses": 872
+  },
+  {
+   "timestamp": 216,
+   "kingdoms": 4,
+   "population_civ": 3290,
+   "wars_started": 3,
+   "peaces_made": 3,
+   "kingdoms_created": 5,
+   "cities_rebelled": 3,
+   "deaths_total": 8339,
+   "houses": 877
+  },
+  {
+   "timestamp": 217,
+   "population_civ": 3341,
+   "population_beasts": 43,
+   "deaths_total": 8368,
+   "houses": 879
+  },
+  {
+   "timestamp": 218,
+   "population_civ": 3437,
+   "population_beasts": 45,
+   "deaths_total": 8399,
+   "houses": 887
+  },
+  {
+   "timestamp": 219,
+   "population_civ": 3497,
+   "population_beasts": 47,
+   "deaths_total": 8425,
+   "houses": 896
+  },
+  {
+   "timestamp": 220,
+   "population_civ": 3567,
+   "population_beasts": 45,
+   "deaths_total": 8445,
+   "houses": 906
+  },
+  {
+   "timestamp": 221,
+   "population_civ": 3644,
+   "population_beasts": 46,
+   "deaths_total": 8463,
+   "houses": 914
+  },
+  {
+   "timestamp": 222,
+   "population_civ": 3714,
+   "population_beasts": 48,
+   "deaths_total": 8506,
+   "houses": 922
+  },
+  {
+   "timestamp": 223,
+   "population_civ": 3776,
+   "population_beasts": 44,
+   "deaths_total": 8528,
+   "houses": 934
+  },
+  {
+   "timestamp": 224,
+   "population_civ": 3819,
+   "population_beasts": 40,
+   "deaths_total": 8564,
+   "houses": 937
+  },
+  {
+   "timestamp": 225,
+   "population_civ": 3908,
+   "population_beasts": 42,
+   "deaths_total": 8598,
+   "houses": 941
+  },
+  {
+   "timestamp": 226,
+   "kingdoms": 7,
+   "population_civ": 4007,
+   "population_beasts": 39,
+   "wars": 3,
+   "wars_started": 6,
+   "kingdoms_created": 8,
+   "cities_rebelled": 6,
+   "deaths_total": 8623,
+   "houses": 951
+  }
+ ],
+ "全局事件记录": [
+  {
+   "年份": 12394,
+   "事件": "kingdom_new",
+   "事件码": "kingdom_new",
+   "主角": "郝国",
+   "对象": null,
+   "补充": null,
+   "王国id": 31,
+   "单位id": -1,
+   "坐标": [
+    252,
+    32
+   ]
+  },
+  {
+   "年份": 12411,
+   "事件": "国王被杀",
+   "事件码": "king_killed",
+   "主角": "后蜀起义军",
+   "对象": " Silvaris  Daydreamero",
+   "补充": "冼突邈",
+   "王国id": 31,
+   "单位id": 9727,
+   "坐标": [
+    220,
+    18
+   ]
+  },
+  {
+   "年份": 12418,
+   "事件": "新国王登基",
+   "事件码": "king_new",
+   "主角": "后蜀起义军",
+   "对象": "姬鱼跃",
+   "补充": null,
+   "王国id": 31,
+   "单位id": 10042,
+   "坐标": [
+    228,
+    36
+   ]
+  },
+  {
+   "年份": 12437,
+   "事件": "kingdom_new",
+   "事件码": "kingdom_new",
+   "主角": "荆国",
+   "对象": null,
+   "补充": null,
+   "王国id": 32,
+   "单位id": -1,
+   "坐标": [
+    101,
+    13
+   ]
+  },
+  {
+   "年份": 12437,
+   "事件": "kingdom_royal_clan_new",
+   "事件码": "kingdom_royal_clan_new",
+   "主角": "荆国",
+   "对象": "Godokoon",
+   "补充": "Deniau Teranu",
+   "王国id": 32,
+   "单位id": 8126,
+   "坐标": [
+    101,
+    13
+   ]
+  },
+  {
+   "年份": 12527,
+   "事件": "国王被杀",
+   "事件码": "king_killed",
+   "主角": "荆国",
+   "对象": "Deniau Teranu",
+   "补充": "商蛰炬",
+   "王国id": 32,
+   "单位id": 10017,
+   "坐标": [
+    85,
+    62
+   ]
+  },
+  {
+   "年份": 12544,
+   "事件": "kingdom_fractured",
+   "事件码": "kingdom_fractured",
+   "主角": "荆国",
+   "对象": null,
+   "补充": null,
+   "王国id": 32,
+   "单位id": -1,
+   "坐标": [
+    92,
+    30
+   ]
+  },
+  {
+   "年份": 12544,
+   "事件": "kingdom_new",
+   "事件码": "kingdom_new",
+   "主角": "临朐国",
+   "对象": null,
+   "补充": null,
+   "王国id": 33,
+   "单位id": -1,
+   "坐标": [
+    121,
+    37
+   ]
+  },
+  {
+   "年份": 12544,
+   "事件": "kingdom_royal_clan_new",
+   "事件码": "kingdom_royal_clan_new",
+   "主角": "临朐国",
+   "对象": "Katovan",
+   "补充": "涂威陟",
+   "王国id": 33,
+   "单位id": 9058,
+   "坐标": [
+    121,
+    37
+   ]
+  },
+  {
+   "年份": 12558,
+   "事件": "国王驾崩",
+   "事件码": "king_dead",
+   "主角": "大仁",
+   "对象": "Morel Huifang",
+   "补充": null,
+   "王国id": 6,
+   "单位id": -1,
+   "坐标": [
+    217,
+    230
+   ]
+  },
+  {
+   "年份": 12566,
+   "事件": "新国王登基",
+   "事件码": "king_new",
+   "主角": "大仁",
+   "对象": "叶蒲月",
+   "补充": null,
+   "王国id": 6,
+   "单位id": 8282,
+   "坐标": [
+    224,
+    239
+   ]
+  },
+  {
+   "年份": 12578,
+   "事件": "diplomacy_war_ended",
+   "事件码": "diplomacy_war_ended",
+   "主角": "壬辰革命",
+   "对象": null,
+   "补充": null,
+   "王国id": -1,
+   "单位id": -1,
+   "坐标": [
+    null,
+    null
+   ]
+  },
+  {
+   "年份": 12578,
+   "事件": "王国覆灭",
+   "事件码": "kingdom_destroyed",
+   "主角": "荆国",
+   "对象": null,
+   "补充": null,
+   "王国id": 32,
+   "单位id": -1,
+   "坐标": [
+    92,
+    30
+   ]
+  },
+  {
+   "年份": 12603,
+   "事件": "国王被杀",
+   "事件码": "king_killed",
+   "主角": "后蜀起义军",
+   "对象": "姬鱼跃",
+   "补充": "赫连际沫",
+   "王国id": 31,
+   "单位id": 8725,
+   "坐标": [
+    220,
+    40
+   ]
+  },
+  {
+   "年份": 12604,
+   "事件": "城市被摧毁",
+   "事件码": "city_destroyed",
+   "主角": "千州",
+   "对象": null,
+   "补充": null,
+   "王国id": 6,
+   "单位id": -1,
+   "坐标": [
+    188,
+    190
+   ]
+  },
+  {
+   "年份": 12619,
+   "事件": "kingdom_fractured",
+   "事件码": "kingdom_fractured",
+   "主角": "后蜀起义军",
+   "对象": null,
+   "补充": null,
+   "王国id": 31,
+   "单位id": -1,
+   "坐标": [
+    236,
+    38
+   ]
+  },
+  {
+   "年份": 12619,
+   "事件": "kingdom_new",
+   "事件码": "kingdom_new",
+   "主角": "杉国",
+   "对象": null,
+   "补充": null,
+   "王国id": 34,
+   "单位id": -1,
+   "坐标": [
+    193,
+    4
+   ]
+  },
+  {
+   "年份": 12629,
+   "事件": "新国王登基",
+   "事件码": "king_new",
+   "主角": "后蜀起义军",
+   "对象": "剑执柿",
+   "补充": null,
+   "王国id": 31,
+   "单位id": 9836,
+   "坐标": [
+    227,
+    10
+   ]
+  },
+  {
+   "年份": 12670,
+   "事件": "国王被杀",
+   "事件码": "king_killed",
+   "主角": "后蜀起义军",
+   "对象": "剑执柿",
+   "补充": "万俟鉴心",
+   "王国id": 31,
+   "单位id": 8634,
+   "坐标": [
+    230,
+    53
+   ]
+  },
+  {
+   "年份": 12686,
+   "事件": "diplomacy_war_ended",
+   "事件码": "diplomacy_war_ended",
+   "主角": "辛卯革命",
+   "对象": null,
+   "补充": null,
+   "王国id": -1,
+   "单位id": -1,
+   "坐标": [
+    null,
+    null
+   ]
+  },
+  {
+   "年份": 12686,
+   "事件": "王国覆灭",
+   "事件码": "kingdom_destroyed",
+   "主角": "后蜀起义军",
+   "对象": null,
+   "补充": null,
+   "王国id": 31,
+   "单位id": -1,
+   "坐标": [
+    236,
+    38
+   ]
+  },
+  {
+   "年份": 12917,
+   "事件": "kingdom_new",
+   "事件码": "kingdom_new",
+   "主角": "百越国",
+   "对象": null,
+   "补充": null,
+   "王国id": 35,
+   "单位id": -1,
+   "坐标": [
+    127,
+    174
+   ]
+  },
+  {
+   "年份": 12917,
+   "事件": "kingdom_royal_clan_new",
+   "事件码": "kingdom_royal_clan_new",
+   "主角": "百越国",
+   "对象": "Katovan",
+   "补充": "仲离",
+   "王国id": 35,
+   "单位id": 8253,
+   "坐标": [
+    127,
+    174
+   ]
+  },
+  {
+   "年份": 12920,
+   "事件": "diplomacy_war_ended",
+   "事件码": "diplomacy_war_ended",
+   "主角": "庚子革命",
+   "对象": null,
+   "补充": null,
+   "王国id": -1,
+   "单位id": -1,
+   "坐标": [
+    null,
+    null
+   ]
+  },
+  {
+   "年份": 13548,
+   "事件": "kingdom_new",
+   "事件码": "kingdom_new",
+   "主角": "瑕国",
+   "对象": null,
+   "补充": null,
+   "王国id": 36,
+   "单位id": -1,
+   "坐标": [
+    218,
+    242
+   ]
+  },
+  {
+   "年份": 13548,
+   "事件": "kingdom_royal_clan_new",
+   "事件码": "kingdom_royal_clan_new",
+   "主角": "瑕国",
+   "对象": "Godokoon",
+   "补充": "管答",
+   "王国id": 36,
+   "单位id": 9195,
+   "坐标": [
+    218,
+    242
+   ]
+  },
+  {
+   "年份": 13549,
+   "事件": "kingdom_new",
+   "事件码": "kingdom_new",
+   "主角": "孤竹国",
+   "对象": null,
+   "补充": null,
+   "王国id": 37,
+   "单位id": -1,
+   "坐标": [
+    204,
+    222
+   ]
+  },
+  {
+   "年份": 13549,
+   "事件": "kingdom_royal_clan_new",
+   "事件码": "kingdom_royal_clan_new",
+   "主角": "孤竹国",
+   "对象": "Godokoon",
+   "补充": "霍贞吉",
+   "王国id": 37,
+   "单位id": 9409,
+   "坐标": [
+    204,
+    222
+   ]
+  },
+  {
+   "年份": 13554,
+   "事件": "kingdom_new",
+   "事件码": "kingdom_new",
+   "主角": "宿国",
+   "对象": null,
+   "补充": null,
+   "王国id": 38,
+   "单位id": -1,
+   "坐标": [
+    220,
+    87
+   ]
+  },
+  {
+   "年份": 13554,
+   "事件": "kingdom_royal_clan_new",
+   "事件码": "kingdom_royal_clan_new",
+   "主角": "宿国",
+   "对象": "Katovan",
+   "补充": "王靓",
+   "王国id": 38,
+   "单位id": 8714,
+   "坐标": [
+    220,
+    87
+   ]
+  },
+  {
+   "年份": 13556,
+   "事件": "国王驾崩",
+   "事件码": "king_dead",
+   "主角": "南方自由主义联邦",
+   "对象": "仲离",
+   "补充": null,
+   "王国id": 35,
+   "单位id": -1,
+   "坐标": [
+    136,
+    128
+   ]
+  },
+  {
+   "年份": 13558,
+   "事件": "kingdom_new",
+   "事件码": "kingdom_new",
+   "主角": "凌国",
+   "对象": null,
+   "补充": null,
+   "王国id": 39,
+   "单位id": -1,
+   "坐标": [
+    21,
+    57
+   ]
+  },
+  {
+   "年份": 13560,
+   "事件": "kingdom_new",
+   "事件码": "kingdom_new",
+   "主角": "晋国",
+   "对象": null,
+   "补充": null,
+   "王国id": 40,
+   "单位id": -1,
+   "坐标": [
+    51,
+    29
+   ]
+  },
+  {
+   "年份": 13560,
+   "事件": "kingdom_royal_clan_new",
+   "事件码": "kingdom_royal_clan_new",
+   "主角": "晋国",
+   "对象": "Godokoon",
+   "补充": "万泊",
+   "王国id": 40,
+   "单位id": 8923,
+   "坐标": [
+    51,
+    29
+   ]
+  },
+  {
+   "年份": 13572,
+   "事件": "新国王登基",
+   "事件码": "king_new",
+   "主角": "南方自由主义联邦",
+   "对象": "仲鹫吉",
+   "补充": null,
+   "王国id": 35,
+   "单位id": 10055,
+   "坐标": [
+    169,
+    192
+   ]
+  }
+ ],
+ "统计数据源": {
+  "可用": true,
+  "路径": "C:\\Users\\24771\\AppData\\LocalLow\\mkarpenko\\WorldBox\\saves\\save3\\map_stats.s3db",
+  "错误": ""
+ }
+}

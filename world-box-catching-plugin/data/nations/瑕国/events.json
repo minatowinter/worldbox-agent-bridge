@@ -1,0 +1,33 @@
+{
+ "schema_version": "1.0",
+ "kind": "nation.events",
+ "文档类型": "本国大事记",
+ "kingdom_id": 36,
+ "王国名称": "瑕国",
+ "events": [
+  {
+   "年份": 13548,
+   "事件": "kingdom_new",
+   "事件码": "kingdom_new",
+   "主角": "瑕国",
+   "对象": null,
+   "补充": null,
+   "坐标": [
+    218,
+    242
+   ]
+  },
+  {
+   "年份": 13548,
+   "事件": "kingdom_royal_clan_new",
+   "事件码": "kingdom_royal_clan_new",
+   "主角": "瑕国",
+   "对象": "Godokoon",
+   "补充": "管答",
+   "坐标": [
+    218,
+    242
+   ]
+  }
+ ]
+}

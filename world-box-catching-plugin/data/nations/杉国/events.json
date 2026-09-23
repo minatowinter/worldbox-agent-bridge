@@ -1,0 +1,21 @@
+{
+ "schema_version": "1.0",
+ "kind": "nation.events",
+ "文档类型": "本国大事记",
+ "kingdom_id": 34,
+ "王国名称": "杉国",
+ "events": [
+  {
+   "年份": 12619,
+   "事件": "kingdom_new",
+   "事件码": "kingdom_new",
+   "主角": "杉国",
+   "对象": null,
+   "补充": null,
+   "坐标": [
+    193,
+    4
+   ]
+  }
+ ]
+}

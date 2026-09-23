@@ -1,0 +1,37 @@
+{
+ "schema_version": "1.0",
+ "kind": "nation.history",
+ "文档类型": "本国逐年历史",
+ "kingdom_id": 37,
+ "王国名称": "孤竹国",
+ "来源表": "KingdomYearly1",
+ "说明": "每个游戏年份一行；游戏当年没统计到的字段会被省略",
+ "series": [
+  {
+   "timestamp": 226,
+   "population": 121,
+   "adults": 85,
+   "children": 36,
+   "army": 3,
+   "boats": 1,
+   "sick": 0,
+   "hungry": 14,
+   "starving": 0,
+   "happy": 119,
+   "kills": 1,
+   "deaths": 6,
+   "births": 0,
+   "territory": 44,
+   "buildings": 15,
+   "homeless": 65,
+   "housed": 56,
+   "food": 71,
+   "families": 39,
+   "males": 61,
+   "females": 60,
+   "cities": 1,
+   "renown": 254,
+   "money": 2228
+  }
+ ]
+}

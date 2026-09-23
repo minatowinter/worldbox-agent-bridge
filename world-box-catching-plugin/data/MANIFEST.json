@@ -1,0 +1,223 @@
+{
+ "schema_version": "1.0",
+ "kind": "manifest",
+ "generated_at": 1789904727.1394422,
+ "export_duration_ms": 216,
+ "source": {
+  "path": "C:\\Users\\24771\\AppData\\LocalLow\\mkarpenko\\WorldBox\\saves\\save3\\map.wbox",
+  "kind": "save",
+  "save_timestamp": 1789904726.9643087,
+  "save_age_seconds": 0.6
+ },
+ "stats_db": {
+  "available": true,
+  "error": ""
+ },
+ "counts": {
+  "kingdoms": 9,
+  "live_kingdoms": 9,
+  "files": 48,
+  "total_bytes": 504122
+ },
+ "out_dir": "C:\\Users\\24771\\Desktop\\world-box-catching-pl\\data",
+ "files": [
+  {
+   "path": "world.json",
+   "bytes": 143211
+  },
+  {
+   "path": "world_overview.json",
+   "bytes": 21361
+  },
+  {
+   "path": "_index.json",
+   "bytes": 1859
+  },
+  {
+   "path": "nations/大仁/self.json",
+   "bytes": 24334
+  },
+  {
+   "path": "nations/大仁/others.json",
+   "bytes": 10107
+  },
+  {
+   "path": "nations/by-id/6.json",
+   "bytes": 24334
+  },
+  {
+   "path": "nations/大仁/history.json",
+   "bytes": 7043
+  },
+  {
+   "path": "nations/大仁/events.json",
+   "bytes": 568
+  },
+  {
+   "path": "nations/临朐国/self.json",
+   "bytes": 12320
+  },
+  {
+   "path": "nations/临朐国/others.json",
+   "bytes": 12392
+  },
+  {
+   "path": "nations/by-id/33.json",
+   "bytes": 12320
+  },
+  {
+   "path": "nations/临朐国/history.json",
+   "bytes": 5101
+  },
+  {
+   "path": "nations/临朐国/events.json",
+   "bytes": 455
+  },
+  {
+   "path": "nations/杉国/self.json",
+   "bytes": 12348
+  },
+  {
+   "path": "nations/杉国/others.json",
+   "bytes": 12235
+  },
+  {
+   "path": "nations/by-id/34.json",
+   "bytes": 12348
+  },
+  {
+   "path": "nations/杉国/history.json",
+   "bytes": 5178
+  },
+  {
+   "path": "nations/杉国/events.json",
+   "bytes": 272
+  },
+  {
+   "path": "nations/南方自由主义联邦/self.json",
+   "bytes": 12669
+  },
+  {
+   "path": "nations/南方自由主义联邦/others.json",
+   "bytes": 12207
+  },
+  {
+   "path": "nations/by-id/35.json",
+   "bytes": 12669
+  },
+  {
+   "path": "nations/南方自由主义联邦/history.json",
+   "bytes": 4123
+  },
+  {
+   "path": "nations/南方自由主义联邦/events.json",
+   "bytes": 760
+  },
+  {
+   "path": "nations/瑕国/self.json",
+   "bytes": 7713
+  },
+  {
+   "path": "nations/瑕国/others.json",
+   "bytes": 12545
+  },
+  {
+   "path": "nations/by-id/36.json",
+   "bytes": 7713
+  },
+  {
+   "path": "nations/瑕国/history.json",
+   "bytes": 605
+  },
+  {
+   "path": "nations/瑕国/events.json",
+   "bytes": 454
+  },
+  {
+   "path": "nations/孤竹国/self.json",
+   "bytes": 7921
+  },
+  {
+   "path": "nations/孤竹国/others.json",
+   "bytes": 12595
+  },
+  {
+   "path": "nations/by-id/37.json",
+   "bytes": 7921
+  },
+  {
+   "path": "nations/孤竹国/history.json",
+   "bytes": 611
+  },
+  {
+   "path": "nations/孤竹国/events.json",
+   "bytes": 458
+  },
+  {
+   "path": "nations/宿国/self.json",
+   "bytes": 7877
+  },
+  {
+   "path": "nations/宿国/others.json",
+   "bytes": 12664
+  },
+  {
+   "path": "nations/by-id/38.json",
+   "bytes": 7877
+  },
+  {
+   "path": "nations/宿国/history.json",
+   "bytes": 612
+  },
+  {
+   "path": "nations/宿国/events.json",
+   "bytes": 451
+  },
+  {
+   "path": "nations/凌国/self.json",
+   "bytes": 7232
+  },
+  {
+   "path": "nations/凌国/others.json",
+   "bytes": 12673
+  },
+  {
+   "path": "nations/by-id/39.json",
+   "bytes": 7232
+  },
+  {
+   "path": "nations/凌国/history.json",
+   "bytes": 184
+  },
+  {
+   "path": "nations/凌国/events.json",
+   "bytes": 272
+  },
+  {
+   "path": "nations/晋国/self.json",
+   "bytes": 7527
+  },
+  {
+   "path": "nations/晋国/others.json",
+   "bytes": 12610
+  },
+  {
+   "path": "nations/by-id/40.json",
+   "bytes": 7527
+  },
+  {
+   "path": "nations/晋国/history.json",
+   "bytes": 184
+  },
+  {
+   "path": "nations/晋国/events.json",
+   "bytes": 450
+  }
+ ],
+ "agent_entrypoints": {
+  "index": "_index.json",
+  "world": "world_overview.json",
+  "nation_self": "nations/<slug>/self.json",
+  "nation_others": "nations/<slug>/others.json"
+ }
+}
