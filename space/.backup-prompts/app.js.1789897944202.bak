@@ -1,0 +1,1274 @@
+'use strict';
+
+/* =====================================================================
+ * Agent Room 前端 —— 多房间 / 角色内心 / 三种发言模式
+ * ===================================================================== */
+
+const $ = (id) => document.getElementById(id);
+
+const S = {
+  rooms: [],            // 房间列表（精简信息）
+  active: null,         // 当前房间完整状态
+  running: false,
+  runningRoomId: null,
+  online: false,
+  editingFile: null,
+  innerAgentId: null,   // 正在查看谁的内心
+  thinking: new Set(),  // 正在思考/判断的 agentId
+  innerOnlyAct: false,
+};
+
+const KIND = {
+  think:  { icon: '💭', label: '思考' },
+  tool:   { icon: '🔧', label: '工具' },
+  decide: { icon: '🎯', label: '判断' },
+  speak:  { icon: '🗣', label: '发言' },
+  policy: { icon: '📜', label: '国策' },
+  error:  { icon: '⚠️', label: '错误' },
+  step:   { icon: '•',  label: '步骤' },
+};
+
+const ACTION_STATUS = {
+  proposed: { label: '待执行', cls: 'proposed' },
+  unparsed: { label: '待解析', cls: 'unparsed' },
+  executed: { label: '已执行', cls: 'executed' },
+  rejected: { label: '被拒绝', cls: 'rejected' },
+  obsolete: { label: '已过期', cls: 'obsolete' },
+};
+
+/* ------------------------- 工具函数 ------------------------- */
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function fmtTime(ts) {
+  return new Date(ts).toLocaleTimeString('zh-CN', { hour12: false });
+}
+function fmtSize(n) {
+  if (n < 1024) return n + ' B';
+  if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+  return (n / 1048576).toFixed(1) + ' MB';
+}
+function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function renderText(text) {
+  let html = esc(text);
+  const names = (S.active?.agents || []).map((a) => a.name).filter(Boolean).sort((a, b) => b.length - a.length);
+  for (const n of names) {
+    html = html.replace(new RegExp('@' + escapeRe(esc(n)) + '(?![\\w\\u4e00-\\u9fa5])', 'g'), (m) => `<span class="mention">${m}</span>`);
+  }
+  return html;
+}
+
+function toast(msg, kind = '') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + kind;
+  el.textContent = msg;
+  $('toasts').appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0'; el.style.transition = 'opacity .3s';
+    setTimeout(() => el.remove(), 320);
+  }, 4200);
+}
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, {
+    method: opts.method || 'GET',
+    headers: opts.body ? { 'Content-Type': 'application/json' } : undefined,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const text = await res.text();
+  let data = {};
+  try { data = text ? JSON.parse(text) : {}; } catch { data = { error: text }; }
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+function isActive(roomId) { return roomId == null || (S.active && roomId === S.active.id); }
+
+/* ------------------------- 渲染：房间切换 ------------------------- */
+
+function renderRoomSelect() {
+  const sel = $('roomSelect');
+  sel.innerHTML = S.rooms
+    .map((r) => {
+      const icon = r.kind === 'worldbox' ? '🌍 ' : '';
+      const pend = r.actionCounts && r.actionCounts.proposed ? ` · 待执行${r.actionCounts.proposed}` : '';
+      return `<option value="${r.id}">${icon}${esc(r.name)} · ${r.agents.length}人${r.messageCount ? ' · ' + r.messageCount + '条' : ''}${pend}</option>`;
+    })
+    .join('');
+  if (S.active) sel.value = S.active.id;
+}
+
+/* ------------------------- 渲染：角色 ------------------------- */
+
+function renderAgents() {
+  const box = $('agentList');
+  if (!S.active) { box.innerHTML = ''; $('agentCount').textContent = '0'; return; }
+  const agents = S.active.agents;
+  $('agentCount').textContent = agents.length;
+  box.innerHTML = '';
+  if (!agents.length) {
+    box.innerHTML = '<div class="file-empty">还没有角色。<br>点右上角「+ 新建」添加一个。</div>';
+    return;
+  }
+  for (const a of agents) {
+    const busy = S.thinking.has(a.id) || (S.active.currentAgentId === a.id);
+    const ro = a.canModifyFiles === false;
+    const st = a.stats || {};
+    const card = document.createElement('div');
+    card.className = 'agent-card' + (a.enabled ? '' : ' disabled') + (busy ? ' speaking' : '');
+    card.innerHTML = `
+      <div class="accent-bar" style="background:${esc(a.color || '#5b8cff')}"></div>
+      <div class="agent-top">
+        <div class="agent-avatar" style="border-color:${esc(a.color || '#5b8cff')}">${esc(a.emoji || '🤖')}</div>
+        <div style="flex:1;min-width:0">
+          <div class="agent-name" style="color:${esc(a.color || '#5b8cff')}">
+            ${esc(a.name)} ${ro ? '<span class="badge-ro" title="只读：不能修改工作区文件">🔒 只读</span>' : ''}
+          </div>
+          <div class="agent-meta" title="${esc(a.model)}">${esc(a.model)}${a.hasKey ? '' : ' · <span style="color:#e2b04a">未配置 Key</span>'}</div>
+        </div>
+        ${busy ? '<div class="thinking-badge"><i></i><i></i><i></i></div>' : ''}
+      </div>
+      <div class="agent-stats">回合 ${st.turns || 0} · token ${(st.promptTokens || 0) + (st.completionTokens || 0)} · 内心 ${a.innerCount || 0}${st.errors ? ` · <span style="color:#ff6b6b">错误 ${st.errors}</span>` : ''}</div>
+      <div class="agent-actions">
+        <button class="btn tiny" data-act="speak" data-id="${a.id}" ${a.enabled ? '' : 'disabled'}>发言</button>
+        <button class="btn tiny ghost" data-act="inner" data-id="${a.id}">内心</button>
+        <button class="btn tiny ghost" data-act="edit" data-id="${a.id}">编辑</button>
+        <button class="btn tiny ghost" data-act="toggle" data-id="${a.id}">${a.enabled ? '停用' : '启用'}</button>
+        <button class="btn tiny danger" data-act="del" data-id="${a.id}">删除</button>
+      </div>
+      ${wbPromptBlock(a)}`;
+    box.appendChild(card);
+  }
+}
+
+/* ------------------------- 渲染：房间对话 ------------------------- */
+
+function messageEl(m) {
+  const el = document.createElement('div');
+  el.className = 'msg ' + (m.role === 'agent' ? 'agent' : m.role);
+  el.dataset.id = m.id;
+
+  if (m.role === 'system') {
+    el.innerHTML = `<div class="msg-body"><div class="msg-text">${renderText(m.text || '')}</div></div>`;
+    return el;
+  }
+  const color = m.color || '#8f9bb3';
+  const innerLink = m.role === 'agent'
+    ? `<span class="inner-link" data-agent="${m.agentId}">💭 内心${m.toolCount ? ' · ' + m.toolCount + ' 次工具' : ''}</span>`
+    : '';
+  el.innerHTML = `
+    <div class="msg-avatar" style="border-color:${esc(color)}">${esc(m.emoji || (m.role === 'user' ? '🧑' : '🤖'))}</div>
+    <div class="msg-body">
+      <div class="msg-head">
+        <span class="msg-name" style="color:${esc(color)}">${esc(m.name || '未知')}</span>
+        ${m.model ? `<span class="msg-badge">${esc(m.model)}</span>` : ''}
+        <span class="msg-time">${fmtTime(m.ts)}</span>
+        ${innerLink}
+      </div>
+      <div class="msg-text">${renderText(m.text || '')}</div>
+    </div>`;
+  return el;
+}
+
+function emptyHint() {
+  return `<div class="empty-hint" id="emptyHint">
+    <div class="big">🤝</div>
+    <p>房间里还没有人说话。在下面输入内容，或点右上角 <b>▶ 开始</b> 让角色们自己开口。</p>
+    <p class="small">提示：用 <code>@名字</code> 可以直接点名某个角色发言。</p>
+  </div>`;
+}
+
+function renderMessages() {
+  const box = $('chatScroll');
+  const msgs = S.active ? S.active.messages : [];
+  box.innerHTML = msgs.length ? '' : emptyHint();
+  msgs.forEach((m) => box.appendChild(messageEl(m)));
+  box.scrollTop = box.scrollHeight;
+}
+
+function appendMessage(m) {
+  if (document.querySelector(`.msg[data-id="${m.id}"]`)) return;
+  const box = $('chatScroll');
+  const hint = $('emptyHint');
+  if (hint) hint.remove();
+  box.appendChild(messageEl(m));
+  const near = box.scrollHeight - box.scrollTop - box.clientHeight < 200;
+  if (near) box.scrollTop = box.scrollHeight;
+}
+
+/* ------------------------- 渲染：内心 ------------------------- */
+
+function innerEntryEl(e) {
+  const k = KIND[e.kind] || KIND.step;
+  const el = document.createElement('div');
+  el.className = 'inner-entry kind-' + e.kind;
+  let extra = '';
+  if (e.tool) {
+    const t = e.tool;
+    extra = `<details class="tool-block" ${t.ok ? '' : 'open'}>
+      <summary><span class="tool-tag ${t.ok ? '' : 'fail'}">${t.ok ? 'TOOL' : 'ERR'}</span>
+        ${esc(t.name)}${t.args && t.args.path ? ' → ' + esc(t.args.path) : ''}</summary>
+      <div class="tool-body">${esc(
+        (t.args && t.args.content != null ? '写入内容（前 1200 字）：\n' + String(t.args.content).slice(0, 1200) + '\n\n' : '') +
+        '结果：\n' + (t.result || '')
+      )}</div></details>`;
+  }
+  el.innerHTML = `
+    <div class="inner-head-line">
+      <span class="inner-kind kind-${e.kind}">${k.icon} ${k.label}</span>
+      <span class="inner-time">${fmtTime(e.ts)}</span>
+      ${e.meta && e.meta.ms ? `<span class="inner-time">${e.meta.ms}ms</span>` : ''}
+    </div>
+    ${e.text ? `<div class="inner-text">${esc(e.text)}</div>` : ''}
+    ${extra}`;
+  return el;
+}
+
+function renderInner() {
+  const drawer = $('innerDrawer');
+  if (!S.innerAgentId || !S.active) { drawer.hidden = true; return; }
+  const agent = S.active.agents.find((a) => a.id === S.innerAgentId);
+  if (!agent) { S.innerAgentId = null; drawer.hidden = true; return; }
+
+  const entries = (S.active.inner || {})[S.innerAgentId] || [];
+  $('innerTitle').textContent = `${agent.emoji || '🤖'} ${agent.name} 的内心`;
+  $('innerSub').textContent = `${entries.length} 条记录 · 房间里只会出现 TA 的正式发言`;
+  const list = $('innerList');
+  list.innerHTML = '';
+  const shown = S.innerOnlyAct ? entries.filter((e) => e.kind !== 'think') : entries;
+  if (!shown.length) {
+    list.innerHTML = '<div class="file-empty">还没有记录。<br>让 TA 发言一次，或点「↻」刷新。</div>';
+  } else {
+    shown.forEach((e) => list.appendChild(innerEntryEl(e)));
+  }
+  list.scrollTop = list.scrollHeight;
+  drawer.hidden = false;
+}
+
+function appendInner(roomId, agentId, entry) {
+  if (!isActive(roomId) || !S.active) return;
+  const map = (S.active.inner ||= {});
+  (map[agentId] ||= []).push(entry);
+  const a = S.active.agents.find((x) => x.id === agentId);
+  if (a) a.innerCount = (a.innerCount || 0) + 1;
+  renderAgents();
+  if (S.innerAgentId === agentId) renderInner();
+}
+
+/* ------------------------- 渲染：世界状态 & 待执行清单 ------------------------- */
+
+function renderWorldBar() {
+  const bar = $('worldBar');
+  const wb = S.active && S.active.worldbox;
+  if (!wb || !wb.enabled) { bar.hidden = true; $('actionsTab').hidden = true; document.body.classList.remove('has-world'); return; }
+  bar.hidden = false;
+  document.body.classList.add('has-world');
+  $('actionsTab').hidden = false;
+
+  const line = $('worldLine');
+  // 顺便说清"当前用哪份存档"：跟随最新 / 已锁定某个 key
+  line.textContent = (wb.line || '（世界服务不可用）') +
+    (wb.saveKey ? `  ·  存档 ${wb.saveKey}` : '  ·  跟随最新存档');
+  line.className = 'world-line' + (wb.available ? (wb.status && wb.status.stale ? ' stale' : ' ok') : ' down');
+
+  $('worldStrictChk').checked = wb.strictTick !== false;
+}
+
+function renderActions() {
+  const wb = S.active && S.active.worldbox;
+  const actions = (S.active && S.active.actions) || [];
+  const pending = actions.filter((a) => a.status === 'proposed' || a.status === 'unparsed');
+  $('actionCount').textContent = wb && wb.enabled ? pending.length : 0;
+  const box = $('actionList');
+  if (!box) return;
+
+  const cap = (wb && wb.maxActionsPerTurn) || 3;
+  $('budgetHint').innerHTML = `每个领袖每轮最多提出 <b>${cap}</b> 条动作（轻度、小步、可逆）；` +
+    `说话/谈判/结盟不占额度。当前待执行 <b>${pending.filter((a) => a.status === 'proposed').length}</b> 条。`;
+
+  if (!actions.length) {
+    box.innerHTML = '<div class="file-empty">还没有《国策》提案。<br>让领袖们发言后，可执行动作会自动抽取到这里。</div>';
+    return;
+  }
+  // 待执行的排前面，其余按时间倒序
+  const order = { proposed: 0, unparsed: 1, executed: 2, rejected: 3, obsolete: 4 };
+  const sorted = actions.slice().sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9) || b.createdAt - a.createdAt);
+
+  box.innerHTML = '';
+  for (const a of sorted) {
+    const meta = ACTION_STATUS[a.status] || ACTION_STATUS.proposed;
+    const el = document.createElement('div');
+    el.className = 'action-item status-' + meta.cls;
+    el.innerHTML = `
+      <div class="action-head">
+        <span class="action-nation">${esc(a.nation || '?')}</span>
+        <span class="action-kind">${esc(a.kind || '')}</span>
+        <span class="action-status s-${meta.cls}">${meta.label}</span>
+      </div>
+      <div class="action-summary">${esc(a.summary || '')}</div>
+      ${a.coord ? `<div class="action-coord">📍 ${esc(a.target || '')} (${a.coord[0]},${a.coord[1]})</div>` : ''}
+      ${a.note ? `<div class="action-note">${esc(a.note)}</div>` : ''}
+      <div class="action-btns">
+        ${a.status === 'proposed' || a.status === 'unparsed'
+          ? `<button class="btn tiny primary" data-decide="executed" data-id="${a.id}">✅ 已执行</button>
+             <button class="btn tiny danger" data-decide="rejected" data-id="${a.id}">❌ 被拒绝</button>`
+          : `<button class="btn tiny ghost" data-decide="proposed" data-id="${a.id}">↺ 改回待执行</button>`}
+        ${a.raw ? `<button class="btn tiny ghost" data-raw="${a.id}">原文</button>` : ''}
+      </div>
+      ${a.raw && a.status === 'unparsed' ? `<details class="action-raw"><summary>查看国策原文</summary><div>${esc(a.raw)}</div></details>` : ''}`;
+    box.appendChild(el);
+  }
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tabs .tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === tab));
+  $('filesPane').hidden = tab !== 'files';
+  $('actionsPane').hidden = tab !== 'actions';
+}
+
+/* ------------------------- 渲染：文件 ------------------------- */
+
+function renderFiles() {
+  const files = (S.active && S.active.files) || [];
+  $('fileCount').textContent = files.length;
+  $('workspacePath').textContent = S.active ? `room/${S.active.dir}/` : '';
+  const box = $('fileList');
+  box.innerHTML = '';
+  if (!files.length) {
+    box.innerHTML = '<div class="file-empty">这个房间的工作区是空的。<br>角色调用 write_file 后会出现在这里。</div>';
+    return;
+  }
+  for (const f of files) {
+    const el = document.createElement('div');
+    el.className = 'file-item' + (S.editingFile === f.path ? ' active' : '');
+    el.innerHTML = `<span>📄</span><span class="fname">${esc(f.path)}</span><span class="fsize">${fmtSize(f.size)}</span>`;
+    el.onclick = () => openFile(f.path);
+    box.appendChild(el);
+  }
+}
+
+async function refreshFiles() {
+  if (!S.active) return;
+  try {
+    const d = await api('/api/files');
+    S.active.files = d.files || [];
+    renderFiles();
+  } catch { /* 静默 */ }
+}
+
+async function openFile(p) {
+  try {
+    const d = await api('/api/file?path=' + encodeURIComponent(p));
+    S.editingFile = d.path;
+    $('fileEditor').hidden = false;
+    $('editorPath').textContent = d.path;
+    $('fileContent').value = d.content;
+    renderFiles();
+  } catch (e) { toast('打开文件失败：' + e.message, 'err'); }
+}
+
+/* ------------------------- 渲染：状态 ------------------------- */
+
+function renderStatus() {
+  const pill = $('statusPill'), txt = $('statusText');
+  const roomRunning = S.running && S.runningRoomId === S.active?.id;
+  pill.className = 'status-pill' + (S.online ? ' online' : '') + (roomRunning ? ' running' : '');
+  if (!S.online) txt.textContent = '未连接';
+  else if (roomRunning) {
+    const cur = S.active && S.active.agents.find((a) => a.id === S.active.currentAgentId);
+    txt.textContent = cur ? `${cur.name} 正在工作…` : '运行中…';
+  } else if (S.running) {
+    const r = S.rooms.find((x) => x.id === S.runningRoomId);
+    txt.textContent = `「${r ? r.name : '其他房间'}」运行中`;
+    pill.className = 'status-pill online running';
+  } else txt.textContent = '空闲';
+
+  $('startBtn').disabled = S.running;
+  $('stopBtn').disabled = !S.running;
+  if (!S.active) return;
+  $('modeSelect').value = S.active.mode || 'round_robin';
+  $('roundsInput').value = S.active.rounds ?? 2;
+  $('roomTitle').textContent = S.active.name || 'Agent Room';
+  document.title = (S.active.name || 'Agent Room') + ' · Agent Room';
+  $('settingText').textContent = S.active.setting || '—';
+  $('settingText').title = S.active.setting || '';
+  $('roundsInput').disabled = S.active.mode === 'on_demand';
+
+  const hints = {
+    round_robin: '轮流发言：每轮所有启用的角色各说一次。',
+    on_demand: '按需发言：每次发言后，系统会让其他角色各自判断"我要不要说话"，需要的人才会开口。会产生额外判断调用。',
+    manual: '手动点名：不自动排队，点某个角色的「发言」才会说话。',
+  };
+  $('modeHint').textContent = hints[S.active.mode] || '';
+}
+
+function renderAll() {
+  renderRoomSelect();
+  renderAgents();
+  renderMessages();
+  renderFiles();
+  renderInner();
+  renderWorldBar();
+  renderActions();
+  renderStatus();
+}
+
+/* ------------------------- 加载 & SSE ------------------------- */
+
+async function loadState() {
+  const d = await api('/api/state');
+  S.rooms = d.rooms || [];
+  S.active = d.active;
+  S.running = d.running;
+  S.runningRoomId = d.runningRoomId;
+  S.thinking.clear();
+  if (S.innerAgentId && !S.active.agents.some((a) => a.id === S.innerAgentId)) S.innerAgentId = null;
+  renderAll();
+}
+
+function connectSSE() {
+  const es = new EventSource('/api/events');
+  es.addEventListener('hello', () => { S.online = true; renderStatus(); });
+  es.onopen = () => { S.online = true; renderStatus(); };
+  es.onerror = () => { S.online = false; renderStatus(); };
+
+  es.addEventListener('rooms', async (e) => {
+    const d = JSON.parse(e.data);
+    const before = S.active?.id;
+    S.rooms = d.rooms || [];
+    S.running = d.running;
+    S.runningRoomId = d.runningRoomId;
+    if (d.activeRoomId !== before) await loadState();
+    renderRoomSelect();
+    renderStatus();
+  });
+
+  es.addEventListener('message', (e) => {
+    const d = JSON.parse(e.data);
+    if (!isActive(d.roomId)) { const r = S.rooms.find((x) => x.id === d.roomId); if (r) r.messageCount = (r.messageCount || 0) + 1; return; }
+    S.active.messages.push(d.message);
+    S.active.agents.forEach((a) => S.thinking.delete(a.id));
+    renderAgents();
+    appendMessage(d.message);
+  });
+
+  es.addEventListener('inner', (e) => {
+    const d = JSON.parse(e.data);
+    appendInner(d.roomId, d.agentId, d.entry);
+  });
+
+  es.addEventListener('tool-live', (e) => {
+    const d = JSON.parse(e.data);
+    if (!isActive(d.roomId)) return;
+    S.thinking.add(d.agentId);
+    renderAgents();
+  });
+
+  es.addEventListener('inner-status', (e) => {
+    const d = JSON.parse(e.data);
+    if (!isActive(d.roomId)) return;
+    if (d.phase === 'thinking') S.thinking.add(d.agentId);
+    else S.thinking.delete(d.agentId);
+    renderAgents();
+  });
+
+  es.addEventListener('deciding', (e) => {
+    const d = JSON.parse(e.data);
+    if (!isActive(d.roomId)) return;
+    d.agentIds.forEach((id) => S.thinking.add(id));
+    renderAgents();
+  });
+
+  es.addEventListener('agents', (e) => {
+    const d = JSON.parse(e.data);
+    if (!isActive(d.roomId)) return;
+    S.active.agents = d.agents;
+    renderAgents();
+  });
+
+  es.addEventListener('room', (e) => {
+    const d = JSON.parse(e.data);
+    if (!isActive(d.id)) return;
+    Object.assign(S.active, d);
+    renderStatus();
+    renderRoomSelect();
+  });
+
+  es.addEventListener('run', (e) => {
+    const d = JSON.parse(e.data);
+    S.running = d.running;
+    S.runningRoomId = d.runningRoomId || null;
+    if (isActive(d.roomId)) {
+      S.active.currentAgentId = d.currentAgentId || null;
+      if (!d.running) S.thinking.clear();
+      renderAgents();
+    }
+    renderStatus();
+  });
+
+  es.addEventListener('queue', (e) => {
+    const d = JSON.parse(e.data);
+    if (isActive(d.roomId) && !d.queue.length) { S.thinking.clear(); renderAgents(); }
+  });
+
+  es.addEventListener('workspace', (e) => {
+    const d = JSON.parse(e.data);
+    if (!isActive(d.roomId)) return;
+    refreshFiles();
+    if (S.editingFile) openFile(S.editingFile);
+  });
+
+  es.addEventListener('actions', (e) => {
+    const d = JSON.parse(e.data);
+    if (!isActive(d.roomId) || !S.active) return;
+    S.active.actions = d.actions;
+    renderActions();
+  });
+
+  es.addEventListener('world', (e) => {
+    const d = JSON.parse(e.data);
+    if (!isActive(d.roomId) || !S.active || !S.active.worldbox) return;
+    S.active.worldbox.status = d.status;
+    if (!d.status) { S.active.worldbox.available = false; S.active.worldbox.line = '⚠️ 世界服务不可用'; }
+    else {
+      S.active.worldbox.available = true;
+      const st = d.status;
+      const mins = (st.saveAgeSeconds / 60).toFixed(1);
+      S.active.worldbox.line = `🌍 ${st.worldName} 第 ${st.year} 年 · 存活 ${st.liveKingdoms}/${st.kingdoms} 国` +
+        (st.stale ? `  ⚠️ 数据已 ${mins} 分钟旧，可能已过期` : `  数据 ${mins} 分钟前`);
+      S.active.worldbox.lastFingerprint = st.fingerprint;
+    }
+    renderWorldBar();
+  });
+
+  es.addEventListener('reset', (e) => {
+    const d = JSON.parse(e.data);
+    if (!isActive(d.roomId)) return;
+    S.active.messages = [];
+    S.active.inner = {};
+    S.active.agents.forEach((a) => (a.innerCount = 0));
+    renderMessages(); renderAgents(); renderInner();
+  });
+}
+
+/* ------------------------- 交互：房间 ------------------------- */
+
+$('roomSelect').onchange = async (e) => {
+  try { await api('/api/rooms/activate', { method: 'POST', body: { id: e.target.value } }); await loadState(); }
+  catch (err) { toast('切换房间失败：' + err.message, 'err'); }
+};
+
+$('newRoomBtn').onclick = () => {
+  $('nr_name').value = `房间 ${S.rooms.length + 1}`;
+  document.querySelector('input[name="nr_kind"][value="normal"]').checked = true;
+  $('nr_baseUrlField').hidden = true;
+  $('newRoomModal').hidden = false;
+  setTimeout(() => $('nr_name').focus(), 30);
+};
+
+document.querySelectorAll('input[name="nr_kind"]').forEach((r) => {
+  r.onchange = () => { $('nr_baseUrlField').hidden = r.value !== 'worldbox' || !r.checked; };
+});
+
+$('createRoomBtn').onclick = async () => {
+  const name = $('nr_name').value.trim();
+  const kind = (document.querySelector('input[name="nr_kind"]:checked') || {}).value || 'normal';
+  const btn = $('createRoomBtn');
+  btn.disabled = true; btn.textContent = kind === 'worldbox' ? '连接世界中…' : '创建中…';
+  try {
+    const d = await api('/api/rooms/create', {
+      method: 'POST',
+      body: { name, kind, baseUrl: $('nr_baseUrl').value.trim() || undefined },
+    });
+    $('newRoomModal').hidden = true;
+    await loadState();
+    toast(`已创建「${d.room.name}」→ room/${d.room.dir}/` + (d.note ? ` · ${d.note}` : ''), 'ok');
+  } catch (e) { toast('创建失败：' + e.message, 'err'); }
+  finally { btn.disabled = false; btn.textContent = '创建'; }
+};
+
+/* ------------------------- 交互：WorldBox 世界 ------------------------- */
+
+$('worldRefreshBtn').onclick = async () => {
+  try {
+    const d = await api('/api/worldbox/refresh', { method: 'POST', body: {} });
+    S.active.worldbox = d.worldbox;
+    S.active.actions = d.actions || S.active.actions;
+    renderWorldBar(); renderActions();
+    toast(d.ok ? '世界状态已刷新' : '世界服务不可用', d.ok ? 'ok' : 'err');
+  } catch (e) { toast('刷新失败：' + e.message, 'err'); }
+};
+
+$('worldForceBtn').onclick = async () => {
+  try {
+    await api('/api/run', { method: 'POST', body: { mode: S.active.mode, rounds: S.active.rounds, force: true } });
+    toast('已强制开启一轮（忽略世界节拍）', 'ok');
+  } catch (e) { toast('启动失败：' + e.message, 'err'); }
+};
+
+$('worldCfgBtn').onclick = openRoomModal;
+
+$('worldStrictChk').onchange = async (e) => {
+  try {
+    await api('/api/worldbox', { method: 'POST', body: { strictTick: e.target.checked } });
+    toast(e.target.checked ? '已开启世界节拍' : '已关闭世界节拍');
+  } catch (err) { toast('设置失败：' + err.message, 'err'); }
+};
+
+$('actionsTab').onclick = () => switchTab('actions');
+
+document.querySelectorAll('.tabs .tab').forEach((t) => { t.onclick = () => switchTab(t.dataset.tab); });
+
+$('actionList').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-decide]');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  const status = btn.dataset.decide;
+  let note = '';
+  if (status === 'rejected') note = prompt('拒绝原因（会回填给领袖，可留空）：', '') || '';
+  if (status === 'executed') note = prompt('执行说明（会回填给领袖，可留空）：', '') || '';
+  try {
+    const d = await api('/api/worldbox/action', { method: 'POST', body: { id, status, note } });
+    const idx = S.active.actions.findIndex((a) => a.id === id);
+    if (idx >= 0) S.active.actions[idx] = d.action;
+    renderActions();
+    toast('已记录裁决，下一轮会回填给领袖', 'ok');
+  } catch (err) { toast('操作失败：' + err.message, 'err'); }
+});
+
+$('copyActionsBtn').onclick = async () => {
+  const pending = (S.active.actions || []).filter((a) => a.status === 'proposed');
+  if (!pending.length) { toast('没有待执行的动作'); return; }
+  const text = pending.map((a, i) =>
+    `${i + 1}. [${a.nation}] ${a.kind === '开关型' ? a.summary : `${a.summary}  → ${a.target}(${a.coord[0]},${a.coord[1]})`}`
+  ).join('\n');
+  try { await navigator.clipboard.writeText(text); toast(`已复制 ${pending.length} 条待执行清单`, 'ok'); }
+  catch { prompt('复制下面的清单：', text); }
+};
+
+$('clearDecidedBtn').onclick = async () => {
+  if (!confirm('清掉所有已裁决（已执行/被拒绝/已过期）的条目？')) return;
+  const d = await api('/api/worldbox/clear', { method: 'POST', body: { keep: ['proposed', 'unparsed'] } });
+  S.active.actions = d.actions;
+  renderActions();
+};
+
+$('renameRoomBtn').onclick = async () => {
+  if (!S.active) return;
+  const name = prompt('新的房间名：', S.active.name);
+  if (name === null || !name.trim()) return;
+  await api('/api/rooms/update', { method: 'POST', body: { id: S.active.id, name: name.trim() } });
+  await loadState();
+};
+
+$('deleteRoomBtn').onclick = async () => {
+  if (!S.active) return;
+  if (!confirm(`删除房间「${S.active.name}」？\n对话记录会被清除；工作区目录 room/${S.active.dir}/ 里的文件会保留。`)) return;
+  try {
+    const d = await api('/api/rooms/delete', { method: 'POST', body: { id: S.active.id } });
+    await loadState();
+    toast('房间已删除，文件保留在 ' + d.keptFiles, 'ok');
+  } catch (e) { toast('删除失败：' + e.message, 'err'); }
+};
+
+/* ------------------------- 交互：顶栏 ------------------------- */
+
+$('startBtn').onclick = async () => {
+  if (!S.active) return;
+  const mode = $('modeSelect').value;
+  if (mode === 'manual') { toast('手动点名模式不会自动排队：点某个角色的「发言」按钮即可'); return; }
+  try {
+    await api('/api/room', {
+      method: 'POST',
+      body: { mode, rounds: Number($('roundsInput').value) || 1 },
+    });
+    await api('/api/run', { method: 'POST', body: { mode, rounds: Number($('roundsInput').value) || 1 } });
+    toast('已开始运行', 'ok');
+  } catch (e) { toast('启动失败：' + e.message, 'err'); }
+};
+
+$('stopBtn').onclick = async () => {
+  try { await api('/api/stop', { method: 'POST', body: {} }); toast('已请求停止'); }
+  catch (e) { toast('停止失败：' + e.message, 'err'); }
+};
+
+$('clearBtn').onclick = async () => {
+  if (!confirm('清空当前房间的所有对话与内心记录？（角色配置和工作区文件不受影响）')) return;
+  try { await api('/api/reset', { method: 'POST', body: {} }); toast('已清空', 'ok'); }
+  catch (e) { toast('清空失败：' + e.message, 'err'); }
+};
+
+$('modeSelect').onchange = async () => {
+  await api('/api/room', { method: 'POST', body: { mode: $('modeSelect').value } }).catch(() => {});
+  renderStatus();
+};
+$('roundsInput').onchange = () => api('/api/room', { method: 'POST', body: { rounds: Number($('roundsInput').value) || 1 } }).catch(() => {});
+$('refreshFilesBtn').onclick = refreshFiles;
+
+/* ------------------------- 交互：角色列表 ------------------------- */
+
+$('agentList').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const { act, id } = btn.dataset;
+  const agent = S.active && S.active.agents.find((a) => a.id === id);
+  if (!agent) return;
+  if (act === 'speak') {
+    try { await api('/api/step', { method: 'POST', body: { agentId: id } }); toast(`已让 ${agent.name} 发言`); }
+    catch (e) { toast('失败：' + e.message, 'err'); }
+  } else if (act === 'inner') {
+    S.innerAgentId = id;
+    renderInner();
+  } else if (act === 'toggle') {
+    await api('/api/agents', { method: 'POST', body: { agent: { id, enabled: !agent.enabled } } });
+  } else if (act === 'edit') {
+    openAgentModal(agent);
+  } else if (act === 'del') {
+    if (!confirm(`删除角色「${agent.name}」？`)) return;
+    await api('/api/agents/delete', { method: 'POST', body: { id } });
+    toast('已删除');
+  }
+});
+
+$('addAgentBtn').onclick = () => openAgentModal(null);
+
+function openAgentModal(agent) {
+  $('agentModalTitle').textContent = agent ? `编辑：${agent.name}` : '新建角色';
+  $('f_id').value = agent ? agent.id : '';
+  $('f_name').value = agent ? agent.name : '';
+  $('f_emoji').value = agent ? agent.emoji : '🤖';
+  $('f_color').value = agent ? agent.color : '#7c9cff';
+  $('f_model').value = agent ? agent.model : 'deepseek-chat';
+  $('f_apiBase').value = agent ? agent.apiBase : 'https://api.deepseek.com/v1';
+  $('f_apiKey').value = '';
+  $('f_temperature').value = agent ? agent.temperature : 0.7;
+  $('f_enabled').value = agent ? String(agent.enabled) : 'true';
+  $('f_canModifyFiles').value = agent ? String(agent.canModifyFiles !== false) : 'true';
+  $('f_systemPrompt').value = agent ? agent.systemPrompt : '你是一个有自己立场和想法的角色。';
+  $('keyHint').textContent = agent && agent.hasKey ? '（已保存，留空则不修改）' : '（尚未配置）';
+
+  // WorldBox 房间：为这个角色指定扮演哪个国家
+  const wb = S.active && S.active.worldbox;
+  const isWorld = !!(wb && wb.enabled);
+  $('f_nationField').hidden = !isWorld;
+  if (isWorld) {
+    const cur = (agent && agent.worldboxNation) || '';
+    const opts = ['<option value="">（未指定）</option>']
+      .concat((wb.nations || []).map((n) => `<option value="${esc(n.name)}">${esc(n.name)}${n.live === false ? '（已灭亡）' : ''} · 军 ${n.army ?? '?'} 人口 ${n.population ?? '?'}</option>`));
+    $('f_nation').innerHTML = opts.join('');
+    $('f_nation').value = cur;
+    if (cur && !(wb.nations || []).some((n) => n.name === cur)) {
+      $('f_nation').innerHTML += `<option value="${esc(cur)}">${esc(cur)}（当前，世界数据里没有）</option>`;
+      $('f_nation').value = cur;
+    }
+  }
+
+  $('agentModal').hidden = false;
+  setTimeout(() => $('f_name').focus(), 30);
+}
+
+function collectAgentForm() {
+  const id = $('f_id').value || undefined;
+  const key = $('f_apiKey').value;
+  const agent = {
+    id,
+    name: $('f_name').value.trim() || '未命名',
+    emoji: $('f_emoji').value.trim() || '🤖',
+    color: $('f_color').value,
+    model: $('f_model').value.trim() || 'deepseek-chat',
+    apiBase: $('f_apiBase').value.trim() || 'https://api.deepseek.com/v1',
+    temperature: Number($('f_temperature').value),
+    enabled: $('f_enabled').value === 'true',
+    canModifyFiles: $('f_canModifyFiles').value === 'true',
+    systemPrompt: $('f_systemPrompt').value,
+  };
+  if (key.trim()) agent.apiKey = key.trim();
+  return agent;
+}
+
+$('saveAgentBtn').onclick = async () => {
+  try {
+    const a = collectAgentForm();
+    if (!a.id) delete a.id;
+    const wb = S.active && S.active.worldbox;
+    const nation = (! $('f_nationField').hidden) ? $('f_nation').value : null;
+    const saved = await api('/api/agents', { method: 'POST', body: { agent: a } });
+    if (nation !== null && wb && wb.enabled) {
+      await api('/api/worldbox', {
+        method: 'POST',
+        body: { nationOf: { [saved.agent.name]: nation } },
+      });
+    }
+    $('agentModal').hidden = true;
+    toast('已保存', 'ok');
+  } catch (e) { toast('保存失败：' + e.message, 'err'); }
+};
+
+$('testAgentBtn').onclick = async () => {
+  const btn = $('testAgentBtn');
+  btn.disabled = true; btn.textContent = '测试中…';
+  try {
+    const d = await api('/api/test', { method: 'POST', body: { agent: collectAgentForm() } });
+    toast(`✅ 连接成功：${d.model} 回复「${d.reply}」`, 'ok');
+  } catch (e) { toast('❌ 连接失败：' + e.message, 'err'); }
+  finally { btn.disabled = false; btn.textContent = '🔌 测试连接'; }
+};
+
+/* ------------------------- 交互：世界存档选择 ------------------------- */
+
+/*
+ * 存档列表有两个来源，字段拼写**不一样**，这里两种都认：
+ *   GET /api/worldbox/saves     → Python 原始行：key / index / kind_label / world_name /
+ *                                 time_local / age_text / stale / has_stats / size_mb
+ *   GET /api/state 的 worldbox  → 已映射：world / age / sizeMb / hasStats …
+ * 只认一种的话，换个来源整列就会空白（本项目有四处白名单序列化，吃过这个亏）。
+ */
+function wbSaveField(s, ...names) {
+  for (const n of names) {
+    if (s && s[n] != null && s[n] !== '') return s[n];
+  }
+  return null;
+}
+
+function wbIsRunning() {
+  return !!(S.running && (S.runningRoomId == null || S.runningRoomId === (S.active && S.active.id)));
+}
+
+/** 一个存档在下拉框里的一行说明。 */
+function wbSaveLabel(s, opts = {}) {
+  const bits = [];
+  if (!opts.noIndex) {
+    const idx = wbSaveField(s, 'index');
+    if (idx != null) bits.push('#' + idx);
+  }
+  if (!opts.noWorld) {
+    const w = wbSaveField(s, 'world', 'world_name');
+    if (w) bits.push(String(w));
+  }
+  bits.push(String(wbSaveField(s, 'kind', 'kind_label') || '存档'));
+  const t = wbSaveField(s, 'time', 'time_local');
+  if (t) bits.push(String(t));
+  const age = wbSaveField(s, 'age', 'age_text');
+  if (age) bits.push('距今 ' + age);
+  const mb = wbSaveField(s, 'sizeMb', 'size_mb');
+  if (mb != null) bits.push(mb + ' MB');
+  if (wbSaveField(s, 'hasStats', 'has_stats') === false) bits.push('无统计库');
+  return bits.join(' · ');
+}
+
+/** 读取存档列表并填进下拉框。列表按世界分组——同一个世界常有十几份自动存档。 */
+async function loadWbSaves() {
+  const sel = $('r_wbSave');
+  const meta = $('r_wbSaveMeta');
+  if (!sel || !meta) return;
+  sel.disabled = true;
+  sel.innerHTML = '<option value="">（正在读取存档列表…）</option>';
+  try {
+    const r = await fetch('/api/worldbox/saves');
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+
+    const rows = d.saves || [];
+    const locked = d.locked || '';
+    const groups = new Map();
+    for (const s of rows) {
+      const w = String(wbSaveField(s, 'world', 'world_name') || '（未知世界）');
+      if (!groups.has(w)) groups.set(w, []);
+      groups.get(w).push(s);
+    }
+
+    const html = ['<option value="">跟随最新存档（不锁定）</option>'];
+    for (const [world, list] of groups) {
+      html.push(`<optgroup label="${esc(world)}（${list.length} 份）">`);
+      for (const s of list) {
+        const key = wbSaveField(s, 'key');
+        // <option> 里没法上色，过期的只能用 ⚠️ 标出来
+        const stale = wbSaveField(s, 'stale') ? '⚠️ ' : '';
+        const active = wbSaveField(s, 'selected') ? '✅ ' : '';
+        const use = String(key) === String(locked) ? ' selected' : '';
+        html.push(`<option value="${esc(key)}"${use}>${active}${stale}${esc(wbSaveLabel(s, { noWorld: true }))}</option>`);
+      }
+      html.push('</optgroup>');
+    }
+    sel.innerHTML = html.join('');
+    sel.value = locked;
+
+    const cur = rows.find((s) => String(wbSaveField(s, 'key')) === String(locked)) || null;
+    // /api/v1/saves 的「当前选择」是一个对象 {requested, using, mode, matches}，不是字符串。
+    // 这里只取 using：mode 不可信——数据服务启动时读到的持久化锁定会被报成「跟随最新存档」
+    // （见 docs/多国演练发现-1国到20国.md 的 P4）。前端不显示 mode。
+    const selRaw = d.selection;
+    const using = (selRaw && typeof selRaw === 'object') ? (selRaw.using || null) : (selRaw || null);
+    const effective = locked || using || null;
+    const staleNow = cur ? !!wbSaveField(cur, 'stale')
+      : !!(S.active && S.active.worldbox && S.active.worldbox.status && S.active.worldbox.status.stale);
+
+    const bits = [];
+    bits.push('本房间：' + (locked ? '已锁定 <b>' + esc(locked) + '</b>' : '未锁定，跟随最新'));
+    if (effective) {
+      bits.push('当前生效 <b>' + esc(effective) + '</b>' + (using && String(using) !== String(locked || '') ? '（由数据服务的存档选择决定）' : ''));
+    }
+    bits.push('共 ' + esc(d.count != null ? d.count : rows.length) + ' 份存档');
+    if (staleNow) bits.push('⚠️ 当前这份已过期，游戏可能没开，世界局势多半已经变了');
+    meta.innerHTML = bits.join('　·　');
+    meta.className = 'tip' + (staleNow ? ' save-stale' : '');
+    if (d.dataDir) meta.innerHTML += `<br><span class="save-dir">数据目录：${esc(d.dataDir)}</span>`;
+    if (d.error) meta.innerHTML += `<br><span class="save-stale">读取存档列表出错：${esc(d.error)}</span>`;
+    if (wbIsRunning()) meta.innerHTML += '<br><span class="save-stale">房间正在运行，先停止才能切换存档。</span>';
+
+    sel.disabled = wbIsRunning();
+  } catch (e) {
+    sel.innerHTML = '<option value="">（读不到存档列表）</option>';
+    sel.disabled = true;
+    meta.className = 'tip save-stale';
+    meta.textContent = '读不到存档列表：' + e.message +
+      '。请确认 python worldbox_agent.py serve 正在运行（默认 http://127.0.0.1:8777）。';
+  }
+}
+
+/** 切换存档。成功后按新世界重建领袖，所以整个面板要重画。 */
+async function switchWbSave(key) {
+  const sel = $('r_wbSave');
+  const meta = $('r_wbSaveMeta');
+  if (!sel || !meta) return;
+  sel.disabled = true;
+  meta.className = 'tip';
+  meta.textContent = '正在切换存档…（重新读取世界，并按新世界重建领袖）';
+  try {
+    // 注意：变量不要叫 res —— 会遮蔽别处的响应对象（这个项目踩过）
+    const r = await fetch('/api/worldbox/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key }),
+    });
+    const d = await r.json().catch(() => ({}));
+
+    if (r.status === 409) {
+      toast('房间正在运行，请先停止再切换存档', 'err');
+      meta.className = 'tip save-stale';
+      meta.textContent = '房间正在运行，不接受切换存档。请先点「停止」，再回来选存档。';
+      return;
+    }
+    if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+
+    await loadState();
+    const st = d.worldbox && d.worldbox.status;
+    toast('已切换到 ' + (d.switched || (key || '最新存档')) +
+      (st ? `（${st.worldName} 第 ${st.year} 年，存活 ${st.liveKingdoms} 国）` : '') +
+      (d.rebuilt ? `，领袖重建 ${d.rebuilt} 位` : ''), 'ok');
+    if (d.warning) toast('⚠️ ' + d.warning, 'err');
+    openRoomModal();            // 领袖名单变了，重画面板（会重新拉存档列表）
+  } catch (e) {
+    toast('切换存档失败：' + e.message, 'err');
+    meta.className = 'tip save-stale';
+    meta.textContent = '切换失败：' + e.message;
+    sel.disabled = wbIsRunning();
+  }
+}
+
+{
+  const sel = $('r_wbSave');
+  if (sel) {
+    sel.onchange = (e) => switchWbSave(e.target.value);
+    $('r_wbSaveReload').onclick = () => loadWbSaves();
+  }
+
+  // 人设：世界栏一个快捷按钮，房间设置里两个（全部 / 只补空缺与过期）
+  const promptBtn = $('worldPromptBtn');
+  if (promptBtn) promptBtn.onclick = () => regenPrompts(true);
+  const regenForce = $('r_regenForce');
+  if (regenForce) regenForce.onclick = () => regenPrompts(true);
+  const regenFill = $('r_regenFill');
+  if (regenFill) regenFill.onclick = () => regenPrompts(false);
+}
+
+/* ------------------------- 人设：自动生成 + 手写 ------------------------- */
+
+/*
+ * 最终人设 = 手写(systemPrompt) + 自动(systemPromptAuto)，拼接后才是角色拿到的。
+ * 自动那段带一个"生成时的世界指纹"，指纹变了说明换了存档/世界推进过，
+ * 里面的国名和国王可能已经不存在了——所以必须让使用者看得见。
+ */
+
+/** 指纹形如 "C:\...\1786604527\map.wbax|1786604527"，取出末尾的存档 key。 */
+function wbSaveKeyOfFingerprint(fp) {
+  const s = String(fp || '');
+  const bar = s.lastIndexOf('|');
+  return bar >= 0 ? s.slice(bar + 1) : (s || null);
+}
+
+function wbPromptState(a) {
+  const auto = String(a.systemPromptAuto || '').trim();
+  const manual = String(a.systemPrompt || '').trim();
+  const eff = String(a.effectivePrompt || '').trim();
+  const wb = (S.active && S.active.worldbox) || null;
+  const fp = wb && wb.status ? wb.status.fingerprint : null;
+  const curKey = wbSaveKeyOfFingerprint(fp);
+  const forKey = wbSaveKeyOfFingerprint(a.systemPromptAutoFor);
+  const stale = !!(auto && a.systemPromptAutoFor && fp && a.systemPromptAutoFor !== fp);
+  return { auto, manual, eff, stale, forKey, curKey };
+}
+
+/** 角色卡上的人设区（默认折叠，点开才看正文）。 */
+function wbPromptBlock(a) {
+  const wb = (S.active && S.active.worldbox) || null;
+  if (!wb || !wb.enabled) return '';
+  const p = wbPromptState(a);
+
+  let cls = 'none';
+  let text;
+  if (!p.auto && !p.manual) {
+    text = '人设：<b>无</b> —— 点世界栏的「🪄 重新生成人设」可按世界数据生成';
+  } else if (p.auto && p.manual) {
+    cls = p.stale ? 'warn' : 'good';
+    text = '人设：既有设定 + 自动生成' + (p.stale
+      ? `　⚠️ 自动那段是按存档 ${esc(p.forKey || '?')} 生成的，当前是 ${esc(p.curKey || '?')}`
+      : '　✅ 与当前世界一致');
+  } else if (p.auto) {
+    cls = p.stale ? 'warn' : 'good';
+    text = '人设：自动生成' + (p.stale
+      ? `　⚠️ 按存档 ${esc(p.forKey || '?')} 生成，当前是 ${esc(p.curKey || '?')}`
+      : `　✅ 与当前世界一致（存档 ${esc(p.curKey || '?')}）`);
+  } else {
+    text = '人设：<b>既有 systemPrompt</b>（自动生成不会覆盖它）';
+  }
+
+  const blocks = [];
+  if (p.auto) {
+    blocks.push(`<details class="prompt-block"><summary>自动生成的人设（${p.auto.length} 字）</summary>` +
+      `<pre class="prompt-pre">${esc(p.auto)}</pre></details>`);
+  }
+  if (p.manual) {
+    blocks.push(`<details class="prompt-block"><summary>既有 systemPrompt（${p.manual.length} 字）· 不会被自动覆盖</summary>` +
+      `<pre class="prompt-pre">${esc(p.manual)}</pre></details>`);
+  }
+  if (p.eff) {
+    blocks.push(`<details class="prompt-block"><summary>最终生效（手写 + 自动，${p.eff.length} 字）</summary>` +
+      `<pre class="prompt-pre">${esc(p.eff)}</pre></details>`);
+  }
+  return `<div class="agent-prompt"><div class="prompt-line ${cls}">${text}</div>${blocks.join('')}</div>`;
+}
+
+/** 房间设置里的统计行：多少份自动、多少份手写、多少份已经过期。 */
+function renderPromptStats() {
+  const box = $('r_promptStats');
+  if (!box || !S.active) return;
+  const wb = S.active.worldbox || {};
+  const agents = S.active.agents || [];
+  let auto = 0; let manual = 0; let stale = 0;
+  for (const a of agents) {
+    const p = wbPromptState(a);
+    if (p.auto) auto++;
+    if (p.manual) manual++;
+    if (p.stale) stale++;
+  }
+  box.innerHTML = `共 <b>${agents.length}</b> 位领袖：自动生成 <b>${auto}</b> · 手写 <b>${manual}</b>` +
+    (stale ? ` · <span class="save-stale">⚠️ ${stale} 份是为旧存档生成的</span>` : '') +
+    '　' + (wb.saveKey ? `当前存档 <b>${esc(wb.saveKey)}</b>` : '当前跟随最新存档');
+}
+
+/** 重新生成人设。force=false 时只补空白与世界已变的那些。 */
+async function regenPrompts(force) {
+  try {
+    // 变量别叫 res —— 会遮蔽响应对象（这个项目踩过）
+    const d = await api('/api/worldbox/prompts', { method: 'POST', body: { force: !!force } });
+    const r = d.result || {};
+    if (r.error) {
+      toast('生成人设失败：' + r.error, 'err');
+      return;
+    }
+    toast(`人设已更新：生成 ${r.filled || 0} · 重算 ${r.refreshed || 0} · 保留 ${r.skipped || 0}` +
+      '（你手写的 systemPrompt 没有被改动）', 'ok');
+    await loadState();
+    if ($('roomModal') && !$('roomModal').hidden) openRoomModal();
+  } catch (e) {
+    toast('生成人设失败：' + e.message, 'err');
+  }
+}
+
+/* ------------------------- 交互：房间设置 ------------------------- */
+
+function openRoomModal() {
+  $('r_title').value = S.active.name || '';
+  $('r_setting').value = S.active.setting || '';
+  $('r_maxTurns').value = S.active.maxTurns ?? 40;
+  $('r_maxToolSteps').value = S.active.maxToolSteps ?? 4;
+  $('r_historyLimit').value = S.active.historyLimit ?? 60;
+  $('r_temperature').value = S.active.temperature ?? 0.7;
+  $('r_followMentions').checked = S.active.followMentions !== false;
+
+  const wb = S.active.worldbox;
+  const isWorld = !!(wb && wb.enabled);
+  $('r_worldboxBox').hidden = !isWorld;
+  if (isWorld) {
+    $('r_wbBaseUrl').value = wb.baseUrl || 'http://127.0.0.1:8777';
+    $('r_wbStrict').value = String(wb.strictTick !== false);
+    $('r_wbCap').value = wb.maxActionsPerTurn || 3;
+    const names = (wb.nations || []).map((n) => n.name);
+    $('r_nationAssign').innerHTML = S.active.agents.map((a) => {
+      const cur = a.worldboxNation || '';
+      const opts = ['<option value="">（未指定）</option>']
+        .concat(names.map((n) => `<option value="${esc(n)}" ${n === cur ? 'selected' : ''}>${esc(n)}</option>`));
+      if (cur && !names.includes(cur)) opts.push(`<option value="${esc(cur)}" selected>${esc(cur)}（世界数据里没有）</option>`);
+      return `<div class="assign-row">
+        <span class="assign-name">${esc(a.emoji || '🤖')} ${esc(a.name)}</span>
+        <select data-nation-for="${esc(a.name)}">${opts.join('')}</select>
+      </div>`;
+    }).join('');
+    // 存档列表走独立接口（/api/state 刻意不带完整列表，只带数量）
+    loadWbSaves();
+    renderPromptStats();
+  }
+
+  $('roomModal').hidden = false;
+}
+$('settingsBtn').onclick = openRoomModal;
+$('editSettingBtn').onclick = openRoomModal;
+
+$('r_autoAssign').onclick = async () => {
+  try {
+    const d = await api('/api/worldbox', { method: 'POST', body: { autoAssign: true } });
+    await loadState();
+    toast('已按顺序自动分配国家', 'ok');
+    openRoomModal();
+  } catch (e) { toast('分配失败：' + e.message, 'err'); }
+};
+
+$('saveRoomBtn').onclick = async () => {
+  try {
+    const wb = S.active.worldbox;
+    const body = {
+      name: $('r_title').value,
+      setting: $('r_setting').value,
+      maxTurns: Number($('r_maxTurns').value) || 40,
+      maxToolSteps: Number($('r_maxToolSteps').value) || 4,
+      historyLimit: Number($('r_historyLimit').value) || 60,
+      temperature: Number($('r_temperature').value),
+      followMentions: $('r_followMentions').checked,
+    };
+    if (wb && wb.enabled) {
+      body.worldbox = {
+        baseUrl: $('r_wbBaseUrl').value.trim(),
+        strictTick: $('r_wbStrict').value === 'true',
+        maxActionsPerTurn: Number($('r_wbCap').value) || 3,
+      };
+      const nationOf = {};
+      document.querySelectorAll('#r_nationAssign select[data-nation-for]').forEach((sel) => {
+        nationOf[sel.dataset.nationFor] = sel.value;
+      });
+      await api('/api/worldbox', { method: 'POST', body: { nationOf, ...body.worldbox } });
+    }
+    await api('/api/room', { method: 'POST', body });
+    $('roomModal').hidden = true;
+    await loadState();
+    toast('房间设置已保存', 'ok');
+  } catch (e) { toast('保存失败：' + e.message, 'err'); }
+};
+
+document.querySelectorAll('[data-close]').forEach((b) => (b.onclick = () => ($(b.dataset.close).hidden = true)));
+document.querySelectorAll('.modal-backdrop').forEach((bd) => {
+  bd.addEventListener('mousedown', (e) => { if (e.target === bd) bd.hidden = true; });
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-backdrop').forEach((m) => (m.hidden = true));
+    if (S.innerAgentId) { S.innerAgentId = null; renderInner(); }
+  }
+});
+
+/* ------------------------- 交互：内心抽屉 ------------------------- */
+
+$('innerCloseBtn').onclick = () => { S.innerAgentId = null; renderInner(); };
+$('innerRefreshBtn').onclick = async () => { await loadState(); };
+$('innerOnlyAct').onchange = (e) => { S.innerOnlyAct = e.target.checked; renderInner(); };
+$('chatScroll').addEventListener('click', (e) => {
+  const link = e.target.closest('.inner-link');
+  if (!link) return;
+  S.innerAgentId = link.dataset.agent;
+  renderInner();
+});
+
+/* ------------------------- 交互：文件 ------------------------- */
+
+$('saveFileBtn').onclick = async () => {
+  if (!S.editingFile) return;
+  try {
+    await api('/api/file', { method: 'POST', body: { path: S.editingFile, content: $('fileContent').value } });
+    toast('文件已保存', 'ok');
+    refreshFiles();
+  } catch (e) { toast('保存失败：' + e.message, 'err'); }
+};
+
+$('deleteFileBtn').onclick = async () => {
+  if (!S.editingFile || !confirm(`删除 ${S.editingFile}？`)) return;
+  await api('/api/file/delete', { method: 'POST', body: { path: S.editingFile } });
+  $('fileEditor').hidden = true; S.editingFile = null; refreshFiles(); toast('已删除');
+};
+
+$('closeFileBtn').onclick = () => { $('fileEditor').hidden = true; S.editingFile = null; renderFiles(); };
+
+/* ------------------------- 交互：输入 & @ ------------------------- */
+
+const input = $('input');
+const pop = $('mentionPop');
+let mentionStart = -1;
+
+input.addEventListener('input', () => {
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 180) + 'px';
+  const pos = input.selectionStart;
+  const before = input.value.slice(0, pos);
+  const m = before.match(/@([^\s@]*)$/);
+  if (m && S.active) {
+    mentionStart = pos - m[1].length - 1;
+    const q = m[1].toLowerCase();
+    const list = S.active.agents.filter((a) => a.enabled && a.name.toLowerCase().includes(q));
+    if (list.length) {
+      pop.innerHTML = list.map((a) => `<div data-name="${esc(a.name)}">${esc(a.emoji || '🤖')} ${esc(a.name)}</div>`).join('');
+      pop.hidden = false;
+      return;
+    }
+  }
+  pop.hidden = true;
+  mentionStart = -1;
+});
+
+pop.addEventListener('mousedown', (e) => {
+  const d = e.target.closest('div[data-name]');
+  if (!d) return;
+  e.preventDefault();
+  const pos = input.selectionStart, value = input.value;
+  const head = value.slice(0, mentionStart), tail = value.slice(pos);
+  input.value = head + '@' + d.dataset.name + ' ' + tail;
+  const np = head.length + d.dataset.name.length + 2;
+  input.setSelectionRange(np, np);
+  pop.hidden = true;
+  input.focus();
+});
+
+async function send() {
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = ''; input.style.height = 'auto'; pop.hidden = true;
+  try {
+    await api('/api/message', { method: 'POST', body: { text, autoStart: $('autoStartChk').checked } });
+  } catch (e) { toast('发送失败：' + e.message, 'err'); input.value = text; }
+}
+
+$('sendBtn').onclick = send;
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  if (e.key === 'Escape') pop.hidden = true;
+});
+
+/* ------------------------- 启动 ------------------------- */
+
+(async () => {
+  try {
+    await loadState();
+    connectSSE();
+  } catch (e) { toast('初始化失败：' + e.message, 'err'); }
+  setInterval(() => { if (!S.running) refreshFiles(); }, 6000);
+})();

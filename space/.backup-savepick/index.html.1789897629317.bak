@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agent Room · 多 Agent 多房间协作环境</title>
+<link rel="stylesheet" href="/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤝</text></svg>" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">🤝</span>
+    <div>
+      <h1 id="roomTitle">Agent Room</h1>
+      <div class="sub">多 Agent 通过 API 在同一房间对话与协作</div>
+    </div>
+  </div>
+
+  <div class="topbar-controls">
+    <div class="status-pill" id="statusPill"><span class="dot"></span><span id="statusText">未连接</span></div>
+
+    <label class="field inline">
+      <span>房间</span>
+      <select id="roomSelect" title="切换房间"></select>
+    </label>
+    <button class="btn tiny primary" id="newRoomBtn" title="新建房间">＋</button>
+    <button class="btn tiny ghost" id="renameRoomBtn" title="重命名房间">✎</button>
+    <button class="btn tiny danger" id="deleteRoomBtn" title="删除房间">🗑</button>
+
+    <label class="field inline">
+      <span>模式</span>
+      <select id="modeSelect">
+        <option value="round_robin">轮流发言</option>
+        <option value="on_demand">按需发言</option>
+        <option value="manual">手动点名</option>
+      </select>
+    </label>
+
+    <label class="field inline">
+      <span>轮数</span>
+      <input type="number" id="roundsInput" min="1" max="20" value="2" />
+    </label>
+
+    <button class="btn primary" id="startBtn">▶ 开始</button>
+    <button class="btn danger" id="stopBtn" disabled>■ 停止</button>
+    <button class="btn ghost" id="clearBtn">🗑 清空</button>
+    <button class="btn ghost" id="settingsBtn">⚙ 房间设置</button>
+  </div>
+</header>
+
+<!-- ============ WorldBox 世界状态横幅 ============ -->
+<div class="world-bar" id="worldBar" hidden>
+  <span class="world-line" id="worldLine">—</span>
+  <span class="spacer"></span>
+  <label class="check" title="开启后，世界指纹（存档）没变就不会开启新一轮决策">
+    <input type="checkbox" id="worldStrictChk" /> 世界没推进就不决策
+  </label>
+  <button class="btn tiny ghost" id="worldRefreshBtn">↻ 刷新世界</button>
+  <button class="btn tiny primary" id="worldForceBtn">⏩ 强制开一轮</button>
+  <button class="btn tiny ghost" id="worldCfgBtn">🌍 世界接入</button>
+</div>
+
+<main class="layout">
+
+  <!-- ============ 左：角色名单 ============ -->
+  <section class="panel agents-panel">
+    <div class="panel-head">
+      <h2>角色 <span class="count" id="agentCount">0</span></h2>
+      <button class="btn tiny primary" id="addAgentBtn">+ 新建</button>
+    </div>
+    <div class="panel-body" id="agentList"></div>
+  </section>
+
+  <!-- ============ 中：房间对话 ============ -->
+  <section class="panel chat-panel">
+    <div class="goal-bar">
+      <div class="goal-label">🎬 房间设定</div>
+      <div class="goal-text" id="settingText">—</div>
+      <button class="btn tiny ghost" id="editSettingBtn">编辑</button>
+    </div>
+
+    <div class="chat-scroll" id="chatScroll"></div>
+
+    <!-- 内心抽屉 -->
+    <div class="inner-drawer" id="innerDrawer" hidden>
+      <div class="inner-head">
+        <div>
+          <span class="inner-title" id="innerTitle">内心</span>
+          <span class="inner-sub" id="innerSub"></span>
+        </div>
+        <div class="inner-tools">
+          <label class="check"><input type="checkbox" id="innerOnlyAct" /> 只看关键动作</label>
+          <button class="btn tiny ghost" id="innerRefreshBtn">↻</button>
+          <button class="btn tiny ghost" id="innerCloseBtn">✕ 关闭</button>
+        </div>
+      </div>
+      <div class="inner-list" id="innerList"></div>
+    </div>
+
+    <div class="composer">
+      <div class="mention-pop" id="mentionPop" hidden></div>
+      <textarea id="input" rows="2" placeholder="对房间里的人说点什么…（Enter 发送，Shift+Enter 换行，@ 可点名）"></textarea>
+      <div class="composer-actions">
+        <label class="check"><input type="checkbox" id="autoStartChk" /> 发送后自动开始</label>
+        <span class="hint" id="modeHint"></span>
+        <button class="btn primary" id="sendBtn">发送</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 右：工作区 / 待执行清单 ============ -->
+  <section class="panel files-panel">
+    <div class="panel-head">
+      <div class="tabs">
+        <button class="tab active" data-tab="files">🗂 工作区 <span class="count" id="fileCount">0</span></button>
+        <button class="tab" data-tab="actions" id="actionsTab" hidden>📜 待执行 <span class="count" id="actionCount">0</span></button>
+      </div>
+      <div>
+        <span class="path-hint" id="workspacePath"></span>
+        <button class="btn tiny ghost" id="refreshFilesBtn">↻</button>
+      </div>
+    </div>
+
+    <div class="panel-body" id="filesPane">
+      <div class="file-list" id="fileList"></div>
+      <div class="file-editor" id="fileEditor" hidden>
+        <div class="file-editor-head">
+          <span id="editorPath">—</span>
+          <div>
+            <button class="btn tiny primary" id="saveFileBtn">保存</button>
+            <button class="btn tiny danger" id="deleteFileBtn">删除</button>
+            <button class="btn tiny ghost" id="closeFileBtn">关闭</button>
+          </div>
+        </div>
+        <textarea id="fileContent" spellcheck="false"></textarea>
+      </div>
+    </div>
+
+    <div class="panel-body" id="actionsPane" hidden>
+      <div class="actions-tools">
+        <button class="btn tiny ghost" id="copyActionsBtn">📋 复制清单</button>
+        <button class="btn tiny ghost" id="clearDecidedBtn">🧹 清掉已裁决</button>
+      </div>
+      <div class="budget-hint" id="budgetHint"></div>
+      <div class="action-list" id="actionList"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ 新建房间弹窗 ============ -->
+<div class="modal-backdrop" id="newRoomModal" hidden>
+  <div class="modal narrow">
+    <div class="modal-head">
+      <h3>新建房间</h3>
+      <button class="btn tiny ghost" data-close="newRoomModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="field"><span>房间名</span><input id="nr_name" placeholder="房间名" /></label>
+
+      <div class="kind-picker">
+        <label class="kind-card">
+          <input type="radio" name="nr_kind" value="normal" checked />
+          <div>
+            <div class="kind-title">💬 普通房间</div>
+            <div class="kind-desc">自由设定场景与角色，不接外部世界数据。适合讨论、评审、角色扮演。</div>
+          </div>
+        </label>
+        <label class="kind-card">
+          <input type="radio" name="nr_kind" value="worldbox" />
+          <div>
+            <div class="kind-title">🌍 WorldBox 世界频道</div>
+            <div class="kind-desc">
+              接入「世界盒子」游戏存档：按世界里真实存在的国家自动建立领袖角色，
+              角色读真实情报、产出《国策》，由你（创世者）在游戏里执行后回填。
+            </div>
+          </div>
+        </label>
+      </div>
+
+      <label class="field" id="nr_baseUrlField" hidden>
+        <span>世界数据服务地址（worldbox_agent）</span>
+        <input id="nr_baseUrl" placeholder="http://127.0.0.1:8777" value="http://127.0.0.1:8777" />
+      </label>
+      <p class="tip" id="nr_hint">
+        接入世界需要先运行 <code>python worldbox_agent.py serve</code>；即使连不上也能建房间，稍后再接。
+      </p>
+    </div>
+    <div class="modal-foot">
+      <span class="spacer"></span>
+      <button class="btn ghost" data-close="newRoomModal">取消</button>
+      <button class="btn primary" id="createRoomBtn">创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 角色编辑弹窗 ============ -->
+<div class="modal-backdrop" id="agentModal" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="agentModalTitle">编辑角色</h3>
+      <button class="btn tiny ghost" data-close="agentModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="f_id" />
+      <div class="row">
+        <label class="field"><span>名字（@提及用）</span><input id="f_name" placeholder="小周" /></label>
+        <label class="field narrow"><span>头像</span><input id="f_emoji" placeholder="🤖" maxlength="4" /></label>
+        <label class="field narrow"><span>颜色</span><input id="f_color" type="color" /></label>
+      </div>
+      <label class="field" id="f_nationField" hidden>
+        <span>扮演的国家（WorldBox）</span>
+        <select id="f_nation"></select>
+      </label>
+      <div class="row">
+        <label class="field"><span>模型名</span><input id="f_model" placeholder="deepseek-chat" /></label>
+        <label class="field"><span>API Base（OpenAI 兼容）</span><input id="f_apiBase" placeholder="https://api.deepseek.com/v1" /></label>
+      </div>
+      <label class="field">
+        <span>API Key <small id="keyHint"></small></span>
+        <input id="f_apiKey" type="password" placeholder="留空 = 不修改；支持 ${ENV:VAR_NAME}" autocomplete="off" />
+      </label>
+      <div class="row">
+        <label class="field"><span>Temperature</span><input id="f_temperature" type="number" step="0.1" min="0" max="2" /></label>
+        <label class="field"><span>启用</span>
+          <select id="f_enabled"><option value="true">启用</option><option value="false">停用</option></select>
+        </label>
+        <label class="field"><span>文件权限</span>
+          <select id="f_canModifyFiles">
+            <option value="true">可读写工作区</option>
+            <option value="false">只读（仅对话）</option>
+          </select>
+        </label>
+      </div>
+      <label class="field"><span>人设 / 职责（System Prompt）</span>
+        <textarea id="f_systemPrompt" rows="6"></textarea>
+      </label>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="testAgentBtn">🔌 测试连接</button>
+      <span class="spacer"></span>
+      <button class="btn ghost" data-close="agentModal">取消</button>
+      <button class="btn primary" id="saveAgentBtn">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 房间设置弹窗 ============ -->
+<div class="modal-backdrop" id="roomModal" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h3>房间设置</h3>
+      <button class="btn tiny ghost" data-close="roomModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="field"><span>房间名</span><input id="r_title" /></label>
+      <label class="field"><span>房间设定（场景、角色关系、正在发生什么）</span><textarea id="r_setting" rows="5"></textarea></label>
+      <p class="tip">房间设定会作为共同背景发给房间里的每一个角色。他们不一定是同事，也可以是谈判对手、家庭成员、历史人物……</p>
+
+      <div id="r_worldboxBox" hidden>
+        <div class="section-title">🌍 WorldBox 世界接入</div>
+        <div class="row">
+          <label class="field"><span>世界数据服务地址</span><input id="r_wbBaseUrl" placeholder="http://127.0.0.1:8777" /></label>
+          <label class="field narrow"><span>世界节拍</span>
+            <select id="r_wbStrict"><option value="true">开启</option><option value="false">关闭</option></select>
+          </label>
+          <label class="field narrow"><span>每轮最多提案</span><input id="r_wbCap" type="number" min="1" max="9" /></label>
+        </div>
+        <p class="tip">
+          开启节拍后，世界指纹（存档）没变就不会开启新一轮决策——避免角色在同一帧数据上重复产出《国策》。<br>
+          <b>每轮最多提案</b>是硬限制：一个领袖一轮最多只能提交这么多条"要创世者动手"的动作，超出的会被服务端直接丢弃；
+          提示里同时要求决策必须<b>轻度、小步、可逆</b>。说话、谈判、结盟不受此限制。
+        </p>
+        <div class="section-title">👑 国家分配</div>
+        <div id="r_nationAssign"></div>
+        <button class="btn tiny ghost" id="r_autoAssign" style="margin-top:8px">自动按顺序分配</button>
+      </div>
+
+      <div class="row">
+        <label class="field"><span>最大回合数（安全上限）</span><input id="r_maxTurns" type="number" min="1" max="500" /></label>
+        <label class="field"><span>每个角色最多工具步数</span><input id="r_maxToolSteps" type="number" min="1" max="12" /></label>
+      </div>
+      <div class="row">
+        <label class="field"><span>历史消息条数</span><input id="r_historyLimit" type="number" min="4" max="200" /></label>
+        <label class="field"><span>全局 Temperature</span><input id="r_temperature" type="number" step="0.1" min="0" max="2" /></label>
+      </div>
+      <label class="check"><input type="checkbox" id="r_followMentions" /> 允许用 @名字 互相接力（被点名的人自动排队发言）</label>
+    </div>
+    <div class="modal-foot">
+      <span class="spacer"></span>
+      <button class="btn ghost" data-close="roomModal">取消</button>
+      <button class="btn primary" id="saveRoomBtn">保存</button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts" class="toasts"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>

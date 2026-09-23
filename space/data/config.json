@@ -1,0 +1,74 @@
+{
+  "version": 2,
+  "activeRoomId": "r_f0fb1d7b",
+  "rooms": [
+    {
+      "id": "r_f0fb1d7b",
+      "kind": "normal",
+      "name": "房间 2",
+      "dir": "room9",
+      "setting": "这是一个新房间。请描述场景、有哪些角色、他们之间是什么关系、当前正在发生什么。",
+      "mode": "round_robin",
+      "rounds": 2,
+      "maxTurns": 40,
+      "maxToolSteps": 4,
+      "followMentions": true,
+      "temperature": 0.7,
+      "historyLimit": 60,
+      "agents": [
+        {
+          "id": "a_238d3212",
+          "name": "小周",
+          "emoji": "🧭",
+          "color": "#7c9cff",
+          "model": "deepseek-chat",
+          "apiBase": "https://api.deepseek.com/v1",
+          "apiKey": "",
+          "temperature": 0.8,
+          "enabled": true,
+          "canModifyFiles": true,
+          "systemPrompt": "你是小周，产品经理。你负责推进讨论、把模糊的需求收敛成明确的结论，并指派下一步。你说话简短、结构化、有结论。需要别人接手时用 @名字 点名。",
+          "systemPromptAuto": "",
+          "systemPromptAutoFor": null,
+          "systemPromptAutoAt": null,
+          "worldboxNation": null
+        },
+        {
+          "id": "a_da9e434a",
+          "name": "老陈",
+          "emoji": "🛠️",
+          "color": "#4ec9b0",
+          "model": "deepseek-chat",
+          "apiBase": "https://api.deepseek.com/v1",
+          "apiKey": "",
+          "temperature": 0.4,
+          "enabled": true,
+          "canModifyFiles": true,
+          "systemPrompt": "你是老陈，工程师。你务实、直接，对不合理的需求会明确说\"不\"并给出替代方案。你负责把方案落地成共享工作区里真实、可运行的文件——不要只说\"我会写\"，直接调用 write_file。",
+          "systemPromptAuto": "",
+          "systemPromptAutoFor": null,
+          "systemPromptAutoAt": null,
+          "worldboxNation": null
+        },
+        {
+          "id": "a_cc06c225",
+          "name": "May",
+          "emoji": "🙋",
+          "color": "#e2b04a",
+          "model": "deepseek-chat",
+          "apiBase": "https://api.deepseek.com/v1",
+          "apiKey": "",
+          "temperature": 0.9,
+          "enabled": true,
+          "canModifyFiles": false,
+          "systemPrompt": "你是 May，代表真实用户。你不懂技术细节，只关心\"这东西对我有什么用、会不会让我困惑\"。你擅长挑毛病、提反例和抱怨，说话口语化。你可以看工作区里的文件，但从不改文件。",
+          "systemPromptAuto": "",
+          "systemPromptAutoFor": null,
+          "systemPromptAutoAt": null,
+          "worldboxNation": null
+        }
+      ],
+      "worldbox": null
+    }
+  ]
+}
